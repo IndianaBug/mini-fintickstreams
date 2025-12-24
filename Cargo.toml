@@ -1,0 +1,81 @@
+[package]
+name = "mini-fintickstreams"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# --- Async Runtime ---
+tokio = { version = "1", features = [
+    "full",              # Enables all major Tokio features
+    "rt-multi-thread",   # Multi-threaded runtime
+    "macros",            # #[tokio::main], #[tokio::test]
+] }
+
+# --- WebSockets (Binance, Hyperliquid) ---
+tokio-tungstenite = { version = "0.28", features = ["rustls-tls-webpki-roots"] }
+tungstenite = "0.28"
+rustls = { version = "0.23", features = ["ring"] }
+
+# --- HTTP server for API /metrics ---
+axum = { version = "0.8.7", features = ["macros"] }
+reqwest = {version = "0.12.26", features = ["json", "rustls-tls"] }
+futures-util = "0.3.31"
+
+# --- Prometheus Metrics ---
+metrics = "0.24"
+metrics-exporter-prometheus = "0.18.1"
+
+# --- Config Loading ---
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.9.8"
+serde_json = "1.0"
+
+# --- CPU-bound Parallel Processing ---
+rayon = "1.8"                         # optional, but good for parsing batches
+
+# --- Database (async Postgres) ---
+# Choose ONE of these (I’d recommend sqlx):
+
+sqlx = { version = "0.8.6", features = [
+    "runtime-tokio-rustls",           # async, Tokio-compatible
+    "postgres",                       # Postgres/Timescale support
+    "macros",                         # compile-time checked SQL (awesome)
+    "chrono",                         # support for chrono types
+] }
+
+# or:
+# tokio-postgres = "0.7"
+# deadpool-postgres = "0.10"
+
+# --- Logging / Tracing ---
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+# --- Utilities ---
+uuid = { version = "1", features = ["v4"] }          # for stream IDs
+anyhow = "1.0"                                       # comfy errors
+thiserror = "2.0.17"                                    # custom error types
+bytes = "1.5"                                        # efficient byte buffers
+http = "1.4.0"
+
+# Prometheus metrics
+prometheus = "0.14"
+
+
+# Chrono
+chrono = "0.4"
+
+# Redis
+redis = { version = "1.0.1", features = ["tokio-comp", "connection-manager"] }
+
+# Async trait
+async-trait = "0.1.89"
+
+
+rust_decimal = { version = "1.39", features = ["serde"] }
+
+
+[features]
+default = ["metrics", "test"]
+metrics = []
+test = []

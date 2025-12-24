@@ -1,0 +1,120 @@
+# ==================================================
+# Binance Linear (USDT-M) exchange config
+# File: binance_linear.toml
+# ==================================================
+
+timezone = "UTC"
+exchange = "binance"
+margin   = "linear"
+api_pool = "binance_linear" # some exchanges have single pool for all of the instruments, binance has 4 pools
+
+# --------------------------------------------------
+# REST API
+# --------------------------------------------------
+
+api_base_url = "https://fapi.binance.com"
+max_weight = 5000
+window = 60
+api_weight_header_key = "x-mbx-used-weight-1m"
+
+# --------------------------------------------------
+# WebSocket
+# --------------------------------------------------
+
+ws_base_url = "wss://fstream.binance.com/ws"
+ws_connection_timeout_seconds = 86400
+ws_max_streams_per_connection = 200
+
+ws_heartbeat_type = "pong"
+ws_heartbeat_timeout_seconds = 600
+ws_heartbeat_frame = "pong"
+
+ws_reconnect_attempts_limit = 300
+ws_reconnect_attempts_reset_seconds = 240
+
+ws_subscribe_attempt_limit = 10
+ws_subscribe_attempts_reset_seconds = 1
+
+ws_subscribe_msg = { method = "SUBSCRIBE", params = ["<stream_title>"], id = "<stream_id>" }
+ws_unsubscribe_msg = { method = "UNSUBSCRIBE", params = ["<stream_title>"], id = "<stream_id>" }
+
+# --------------------------------------------------
+# REST endpoints
+# --------------------------------------------------
+
+[api.ping]
+endpoint = "/fapi/v1/ping"
+weight = 1
+params = {}
+interval_seconds = 1000000000000
+method = "GET"
+
+[api.server_time]
+endpoint = "/fapi/v1/time"
+weight = 1
+params = {}
+interval_seconds = 100000000000
+method = "GET"
+
+[api.exchange_info]
+endpoint = "/fapi/v1/exchangeInfo"
+weight = 1
+params = {}
+interval_seconds = 100000000000
+method = "GET"
+
+[api.depth]
+endpoint = "/fapi/v1/depth"
+weight = 20
+params = { symbol = "<symbol>", limit = 1000 }
+interval_seconds = 100000000000
+method = "GET"
+
+[api.open_interest]
+endpoint = "/fapi/v1/openInterest"
+weight = 1
+params = { symbol = "<symbol>" }
+interval_seconds = 3
+method = "GET"
+
+[api.funding_rate]
+endpoint = "/fapi/v1/fundingRate"
+weight = 5
+params = { symbol = "<symbol>", limit = 1 }
+interval_seconds = 600
+method = "GET"
+
+[api.top_traders_accounts]
+endpoint = "/futures/data/topLongShortPositionRatio"
+weight = 1
+params = { symbol = "<symbol>", period = "5m", limit = 1 }
+interval_seconds = 600
+method = "GET"
+
+[api.top_traders_positions]
+endpoint = "/futures/data/topLongShortAccountRatio"
+weight = 1
+params = { symbol = "<symbol>", period = "5m", limit = 1 }
+interval_seconds = 600
+method = "GET"
+
+[api.global_traders_accounts]
+endpoint = "/futures/data/globalLongShortAccountRatio"
+weight = 1
+params = { symbol = "<symbol>", period = "5m", limit = 1 }
+interval_seconds = 600
+method = "GET"
+
+# --------------------------------------------------
+# WebSocket streams
+# --------------------------------------------------
+
+[ws.depth_update]
+stream_title = "<symbol>@depth@100ms"
+
+[ws.trades]
+stream_title = "<symbol>@aggTrade"
+
+[ws.liquidations]
+stream_title = "<symbol>@forceOrder"
+

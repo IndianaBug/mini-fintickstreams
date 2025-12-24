@@ -1,0 +1,78 @@
+# ==================================================
+# redis.toml — Redis configuration
+# Role: PRODUCER ONLY (Redis is optional acceleration)
+# ==================================================
+
+# single -> always use default_node
+# pool   -> enable multiple Redis nodes later
+mode = "single"
+default_node = "a"
+
+# --------------------------------------------------
+# Redis nodes (standalone instances)
+# --------------------------------------------------
+[nodes]
+a = "redis://127.0.0.1:6379"
+# b = "redis://127.0.0.1:6380/0"   # future capacity, new symbols only
+
+# --------------------------------------------------
+# Connection behavior
+# --------------------------------------------------
+[connection]
+connect_timeout_ms = 2000
+command_timeout_ms = 2000
+keepalive_sec = 30
+tcp_nodelay = true
+
+# --------------------------------------------------
+# Capacity thresholds (health guardrails)
+# Used ONLY to decide whether Redis is safe to use
+# --------------------------------------------------
+[capacity]
+poll_interval_sec = 2
+max_memory_pct = 85
+max_pending = 200_000
+max_p99_cmd_ms = 10   # rolling latency threshold
+redis_publish_latency_window = 2048   # Rolling window of Redis stream publish command latencies
+
+# --------------------------------------------------
+# Failure behavior (NO rerouting in producer)
+# Redis is best-effort only
+# --------------------------------------------------
+[failover]
+on_saturated = "stop_assigning_new"      # do not onboard new symbols
+on_down = "disable_redis_temporarily"    # DB path continues
+
+# Historical / rejected ideas (DO NOT ENABLE):
+# on_saturated = "spillover_to_other_node"
+# on_down = "reroute_new_only"
+# on_down = "reroute_all"
+
+# --------------------------------------------------
+# Streams layout (producer writes only)
+# --------------------------------------------------
+[streams]
+key_format = "stream:{exchange}:{symbol}:{kind}"
+
+publish_trades = true
+publish_depth = true
+publish_liquidations = true
+publish_funding = true
+publish_open_interest = true
+
+# --------------------------------------------------
+# Stream retention (short-lived buffer only)
+# --------------------------------------------------
+[retention]
+maxlen = 5_000
+approx = true
+
+# --------------------------------------------------
+# Consumer groups (DOCUMENTATION ONLY)
+# This service DOES NOT consume streams
+# --------------------------------------------------
+[groups]
+feature_builder = "cg:features"
+# ml_infer      = "cg:ml"
+# NOTE: consumer behavior is configured in consumer services
+

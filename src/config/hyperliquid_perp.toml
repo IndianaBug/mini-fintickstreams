@@ -1,0 +1,84 @@
+# ==================================================
+# Hyperliquid Perpetuals exchange config
+# File: hyperliquid_perp.toml
+# ==================================================
+
+timezone = "UTC"
+exchange = "hyperliquid"
+margin   = "perpetual"
+api_pool = "hyperliquid"   # some exchanges have single pool for all of the instruments, hyperliquid is of this type
+
+# --------------------------------------------------
+# REST API
+# --------------------------------------------------
+
+api_base_url = "https://api.hyperliquid.xyz"
+# Hyperliquid does not publish official rate limits.
+# These are client-side safety limits.
+max_weight = 50
+window = 1
+api_weight_header_key = "Client-side throttle only"
+
+# --------------------------------------------------
+# WebSocket
+# --------------------------------------------------
+
+ws_base_url = "wss://api.hyperliquid.xyz/ws"
+
+ws_connection_timeout_seconds = 0        # 0 = no forced timeout
+ws_max_streams_per_connection = 200
+
+ws_heartbeat_type = "ping"
+ws_heartbeat_timeout_seconds = 50       # server closes after ~60s
+ws_heartbeat_frame = { method = "ping" }
+
+ws_reconnect_attempts_limit = 300
+ws_reconnect_attempts_reset_seconds = 240
+
+ws_subscribe_attempt_limit = 20
+ws_subscribe_attempts_reset_seconds = 1
+
+ws_subscribe_msg = { method = "subscribe", subscription = { type = "<subscription_type>", coin = "<coin>" } }
+ws_unsubscribe_msg = { method = "unsubscribe", subscription = { type = "<subscription_type>", coin = "<coin>" } }
+
+
+# --------------------------------------------------
+# REST API endpoints
+# All Hyperliquid endpoints are POST /info
+# --------------------------------------------------
+
+[api.exchange_info]
+native_stream_name = "meta"
+endpoint = "/info"
+weight = 1
+params = { type = "meta", dex = "" }
+interval_seconds = 100000000000
+method = "POST"
+
+[api.depth]
+native_stream_name = "l2Book"
+endpoint = "/info"
+weight = 1
+params = { type = "l2Book", coin = "<coin>", nSigFigs = 5 }
+interval_seconds = 100000000000
+method = "POST"
+
+# --------------------------------------------------
+# WebSocket subscriptions
+# --------------------------------------------------
+
+[ws.depth_update]
+subscription_type = "l2Book"
+coin = "<coin>"
+# stream_title = { type = "l2Book", coin = "<coin>" }
+
+[ws.trades]
+subscription_type = "trades"
+coin = "<coin>"
+# stream_title = { type = "trades", coin = "<coin>" }
+
+[ws.oi_funding]
+subscription_type = "activeAssetCtx"
+coin = "<coin>"
+# stream_title = { type = "activeAssetCtx", coin = "<coin>" }
+

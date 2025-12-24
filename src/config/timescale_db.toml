@@ -1,0 +1,48 @@
+# ==================================================
+# timescale.toml — TimescaleDB / PostgreSQL config
+# ==================================================
+
+# --------------------------------------------------
+# Database shards (single shard now, extensible later)
+# --------------------------------------------------
+
+[[shards]]
+id = "shard0"
+dsn_env= "SHARD_MAIN_DSN"
+
+# Connection pool (writer-sensitive)
+pool_min = 1
+pool_max = 10
+connect_timeout_ms = 5000
+idle_timeout_sec = 300
+
+# Routing rules for this shard
+[[shards.rules]]
+exchange = "*"
+stream   = "*"
+symbol   = "*"
+
+# --------------------------------------------------
+# Example: future shard (commented)
+# --------------------------------------------------
+# [[shards]]
+# id = "shard_depth"
+# dsn = "postgres://user:pass@db1:5432/market"
+# pool_min = 2
+# pool_max = 16
+#
+# [[shards.rules]]
+# exchange = "bybit"
+# stream   = "depth"
+# symbol   = "*"
+
+# --------------------------------------------------
+# Writer behavior (critical for scaling)
+# --------------------------------------------------
+
+[writer]
+batch_size = 1000              # rows per flush
+flush_interval_ms = 50         # max time to wait before flush
+max_inflight_batches = 4       # backpressure control
+use_copy = true                # use COPY instead of INSERT for heavy streams
+

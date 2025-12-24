@@ -1,0 +1,59 @@
+# ==================================================
+# prometheus.toml — application metrics config
+# ==================================================
+
+# Where the application exposes Prometheus metrics
+bind_addr = "0.0.0.0"
+port = 8000
+metrics_path = "/metrics"
+
+# Static labels applied to all app metrics
+[labels]
+service = "streamer"
+env = "prod"
+
+# --------------------------------------------------
+# What the application exports
+# --------------------------------------------------
+[export]
+export_build_info = true
+export_uptime = true
+
+# Pipeline essentials
+export_ingest_rates = true
+export_process_rates = true
+export_end_to_end_delay = true
+
+# Redis Streams semantics (lag, pending)
+export_stream_group_stats = true
+
+# Client-side error visibility
+export_redis_errors = true
+
+# --------------------------------------------------
+# Redis Streams polling (application-level)
+# --------------------------------------------------
+[redis_poll]
+enabled = true
+interval_sec = 2
+use_xinfo_groups = true
+use_xpending_summary = true
+
+# --------------------------------------------------
+# Reference scrape targets (documentation / wiring)
+# Prometheus itself still uses prometheus.yml
+# --------------------------------------------------
+[targets]
+
+[[targets.redis_exporter]]
+name = "redis"
+url = "http://127.0.0.1:9121/metrics"
+
+[[targets.postgres_exporter]]
+name = "postgres"
+url = "http://127.0.0.1:9187/metrics"
+
+[[targets.app]]
+name = "streamer"
+url = "http://127.0.0.1:8000/metrics"
+
