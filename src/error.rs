@@ -83,4 +83,7 @@ pub enum AppError {
 
     #[error("Redis error: {0}")]
     Redis(#[from] redis::RedisError),
+
+    #[error("Redis logic error: {0}")]
+    RedisLogic(String),
 }
