@@ -4,6 +4,53 @@ use crate::ingest::config::{ApiEndpoint, ExchangeConfigs, WsStream};
 use crate::ingest::spec::{Ctx, ParamPlacement};
 use std::{fmt, str::FromStr};
 
+impl StreamKind {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Trades => "Trades",
+            Self::L2Book => "L2Book",
+            Self::Ticker => "Ticker",
+            Self::Funding => "Funding",
+            Self::OpenInterest => "OpenInterest",
+            Self::Liquidations => "Liquidations",
+            Self::FundingOpenInterest => "FundingOpenInterest",
+        }
+    }
+
+    /// Optional: handy for DB reads, gives a clearer error context.
+    pub fn try_from_db(s: &str) -> Result<Self, AppError> {
+        s.parse::<Self>().map_err(|e| {
+            // Keep the original message but add context.
+            AppError::InvalidArgument(format!("invalid StreamKind from DB: {s} ({e})"))
+        })
+    }
+}
+
+impl fmt::Display for StreamKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.as_str())
+    }
+}
+
+impl FromStr for StreamKind {
+    type Err = AppError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Trades" => Ok(Self::Trades),
+            "L2Book" => Ok(Self::L2Book),
+            "Ticker" => Ok(Self::Ticker),
+            "Funding" => Ok(Self::Funding),
+            "OpenInterest" => Ok(Self::OpenInterest),
+            "Liquidations" => Ok(Self::Liquidations),
+            "FundingOpenInterest" => Ok(Self::FundingOpenInterest),
+            _ => Err(AppError::InvalidArgument(format!(
+                "invalid StreamKind: '{s}' (expected one of: Trades, L2Book, Ticker, Funding, OpenInterest, Liquidations, FundingOpenInterest)"
+            ))),
+        }
+    }
+}
+
 pub fn binance_ws_request_id(stream_id: &str) -> String {
     // Allowed: A-Z a-z 0-9 - _
     // Replace anything else with '_', then clamp to 36 chars.
@@ -287,8 +334,8 @@ mod tests {
     fn stream_module_smoke_test_real_configs() {
         // If load_app_config / ExchangeConfigs::new return AppResult<T>,
         // this test can just unwrap() everything.
-        let app_cfgs = load_app_config().unwrap();
-        let exchange_cfgs = ExchangeConfigs::new(&app_cfgs).unwrap();
+        let app_cfgs = load_app_config(false, 0).unwrap();
+        let exchange_cfgs = ExchangeConfigs::new(&app_cfgs, false, 0).unwrap();
 
         println!("================= CONFIG LOADED =================");
         println!(

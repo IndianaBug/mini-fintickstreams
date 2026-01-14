@@ -373,8 +373,8 @@ mod tests {
 
     #[tokio::test]
     async fn registry_build_from_real_loader_is_not_empty_and_prints() -> AppResult<()> {
-        let appconfig = load_app_config()?;
-        let exchangeconfigs = ExchangeConfigs::new(&appconfig)?;
+        let appconfig = load_app_config(false, 0)?;
+        let exchangeconfigs = ExchangeConfigs::new(&appconfig, false, 0)?;
 
         let loader = InstrumentSpecLoader::new(exchangeconfigs, None, None)?;
         let specs = loader.load_all().await?;
@@ -396,8 +396,8 @@ mod tests {
 
     #[tokio::test]
     async fn registry_prints_future_linear_from_real_loader() -> AppResult<()> {
-        let appconfig = load_app_config()?;
-        let exchangeconfigs = ExchangeConfigs::new(&appconfig)?;
+        let appconfig = load_app_config(false, 0)?;
+        let exchangeconfigs = ExchangeConfigs::new(&appconfig, false, 0)?;
 
         let loader = InstrumentSpecLoader::new(exchangeconfigs, None, None)?;
         let specs = loader.load_all().await?;

@@ -1,3 +1,4 @@
+mod db_registry;
 mod db_writes;
 mod http_deserialize;
 mod redis_failure;

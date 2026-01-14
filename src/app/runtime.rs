@@ -16,6 +16,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
 use tokio::task::JoinHandle;
+use tokio::time::sleep;
 use tracing::{debug, info, instrument, warn};
 
 /// Holds a pinned snapshot of the registry so iterators can safely borrow from it.
@@ -41,9 +42,9 @@ pub struct AppRuntime {
 }
 
 impl AppRuntime {
-    pub async fn new() -> AppResult<Self> {
+    pub async fn new(from_env: bool, version: u32) -> AppResult<Self> {
         crate::crypto_init::init_rustls_crypto_provider();
-        let mut deps = AppDeps::new().await?; // <-- mutable, not Arc yet
+        let mut deps = AppDeps::new(from_env, version).await?; // <-- mutable, not Arc yet
 
         deps.spawn_db_health_loop()?;
         deps.spawn_redis_health_loop()?;
@@ -214,7 +215,7 @@ impl AppRuntime {
         // Optional: admission trace (you already trace denial inside ensure_runtime_ok_for_admission)
         // self.ensure_runtime_ok_for_admission()?;
 
-        let res = crate::app::start_stream(self, params).await;
+        let res = crate::app::start_stream(self, params, true).await;
 
         match &res {
             Ok(()) => info!(component = "streams", "add_stream succeeded"),
@@ -245,6 +246,19 @@ impl AppRuntime {
 
         debug!(component = "streams", stream_id = %id, "remove_stream requested");
 
+        let spec = self
+            .state
+            .stream_spec(&id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+
+        let db = self
+            .deps
+            .db
+            .as_ref()
+            .ok_or_else(|| AppError::Disabled("db_unavailable".into()))?;
+
+        db.handler.remove_stream(&spec).await?;
         let result = self.state.stop_and_remove(&id).await?;
 
         if result {
@@ -254,6 +268,44 @@ impl AppRuntime {
             warn!(component = "streams", stream_id = %id, "remove_stream: stream not found");
             Err(AppError::StreamNotFound("stream not found".into()))
         }
+    }
+
+    pub async fn on_crash(&self) -> AppResult<()> {
+        let db = self
+            .deps
+            .db
+            .as_ref()
+            .ok_or_else(|| AppError::Disabled("db_unavailable".into()))?;
+
+        let streams = db.handler.load_enabled_streams_from_registry().await?;
+
+        debug!("on_crash: restoring {} streams", streams.len());
+
+        for stream in streams {
+            let stream_id = StreamId::new(
+                stream.exchange.as_str(),
+                stream.symbol.as_str(),
+                stream.kind,
+                stream.transport,
+            );
+            debug!(
+                stream_id = ?stream_id,
+                "on_crash: waiting before restoring stream"
+            );
+
+            sleep(Duration::from_secs(1)).await;
+
+            debug!(
+                stream_id = ?stream_id,
+                "on_crash: re-adding stream"
+            );
+
+            self.add_stream(stream).await?;
+        }
+
+        debug!("on_crash: all streams restored");
+
+        Ok(())
     }
 }
 
@@ -397,6 +449,19 @@ impl AppRuntime {
     )]
     pub async fn set_stream_knobs(&self, id: &StreamId, knobs: StreamKnobs) -> AppResult<bool> {
         debug!(component = "knobs", "set_stream_knobs requested");
+        let spec = self
+            .state
+            .stream_spec(&id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        let db = self
+            .deps
+            .db
+            .as_ref()
+            .ok_or_else(|| AppError::Disabled("db_unavailable".into()))?;
+
+        db.handler.update_stream_knobs(&spec, &knobs).await?;
+
         let res = self.state.set_knobs(id, knobs).await;
         match &res {
             Ok(changed) => info!(
@@ -435,6 +500,26 @@ impl AppRuntime {
         id: &StreamId,
         enabled: bool,
     ) -> AppResult<bool> {
+        // Dealing with database registry
+        let spec = self
+            .state
+            .stream_spec(&id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        let db = self
+            .deps
+            .db
+            .as_ref()
+            .ok_or_else(|| AppError::Disabled("db_unavailable".into()))?;
+        let mut knobs = self
+            .state
+            .stream_knobs_snapshot(id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        knobs.disable_db_writes = false;
+
+        db.handler.update_stream_knobs(&spec, &knobs).await?;
+
         let res = self.state.set_db_writes_enabled(id, enabled).await;
         match &res {
             Ok(changed) => info!(
@@ -458,6 +543,23 @@ impl AppRuntime {
         id: &StreamId,
         enabled: bool,
     ) -> AppResult<bool> {
+        let spec = self
+            .state
+            .stream_spec(&id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        let db = self
+            .deps
+            .db
+            .as_ref()
+            .ok_or_else(|| AppError::Disabled("db_unavailable".into()))?;
+        let mut knobs = self
+            .state
+            .stream_knobs_snapshot(id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        knobs.disable_redis_publishes = false;
+        db.handler.update_stream_knobs(&spec, &knobs).await?;
         let res = self.state.set_redis_publishes_enabled(id, enabled).await;
         match &res {
             Ok(changed) => info!(
@@ -479,6 +581,23 @@ impl AppRuntime {
         err
     )]
     pub async fn set_stream_flush_rows(&self, id: &StreamId, rows: usize) -> AppResult<bool> {
+        let spec = self
+            .state
+            .stream_spec(&id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        let db = self
+            .deps
+            .db
+            .as_ref()
+            .ok_or_else(|| AppError::Disabled("db_unavailable".into()))?;
+        let mut knobs = self
+            .state
+            .stream_knobs_snapshot(id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        knobs.flush_rows = rows;
+        db.handler.update_stream_knobs(&spec, &knobs).await?;
         let res = self.state.set_flush_rows(id, rows).await;
         match &res {
             Ok(changed) => info!(
@@ -502,6 +621,23 @@ impl AppRuntime {
         id: &StreamId,
         interval_ms: u64,
     ) -> AppResult<bool> {
+        let spec = self
+            .state
+            .stream_spec(&id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        let db = self
+            .deps
+            .db
+            .as_ref()
+            .ok_or_else(|| AppError::Disabled("db_unavailable".into()))?;
+        let mut knobs = self
+            .state
+            .stream_knobs_snapshot(id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        knobs.flush_interval_ms = interval_ms;
+        db.handler.update_stream_knobs(&spec, &knobs).await?;
         let res = self.state.set_flush_interval_ms(id, interval_ms).await;
         match &res {
             Ok(changed) => info!(
@@ -521,6 +657,23 @@ impl AppRuntime {
         err
     )]
     pub async fn set_stream_hard_cap_rows(&self, id: &StreamId, rows: usize) -> AppResult<bool> {
+        let spec = self
+            .state
+            .stream_spec(&id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        let db = self
+            .deps
+            .db
+            .as_ref()
+            .ok_or_else(|| AppError::Disabled("db_unavailable".into()))?;
+        let mut knobs = self
+            .state
+            .stream_knobs_snapshot(id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        knobs.hard_cap_rows = rows;
+        db.handler.update_stream_knobs(&spec, &knobs).await?;
         let res = self.state.set_hard_cap_rows(id, rows).await;
         match &res {
             Ok(changed) => info!(
@@ -540,6 +693,23 @@ impl AppRuntime {
         err
     )]
     pub async fn set_stream_chunk_rows(&self, id: &StreamId, rows: usize) -> AppResult<bool> {
+        let spec = self
+            .state
+            .stream_spec(&id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        let db = self
+            .deps
+            .db
+            .as_ref()
+            .ok_or_else(|| AppError::Disabled("db_unavailable".into()))?;
+        let mut knobs = self
+            .state
+            .stream_knobs_snapshot(id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        knobs.chunk_rows = rows;
+        db.handler.update_stream_knobs(&spec, &knobs).await?;
         let res = self.state.set_chunk_rows(id, rows).await;
         match &res {
             Ok(changed) => info!(
@@ -572,6 +742,26 @@ impl AppRuntime {
         hard_cap_rows: usize,
         chunk_rows: usize,
     ) -> AppResult<bool> {
+        let spec = self
+            .state
+            .stream_spec(&id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        let db = self
+            .deps
+            .db
+            .as_ref()
+            .ok_or_else(|| AppError::Disabled("db_unavailable".into()))?;
+        let mut knobs = self
+            .state
+            .stream_knobs_snapshot(id)
+            .await
+            .ok_or_else(|| AppError::StreamNotFound(id.to_string()))?;
+        knobs.chunk_rows = chunk_rows;
+        knobs.flush_interval_ms = flush_interval_ms;
+        knobs.flush_rows = flush_rows;
+        knobs.hard_cap_rows = hard_cap_rows;
+        db.handler.update_stream_knobs(&spec, &knobs).await?;
         let res = self
             .state
             .set_batch_knobs(id, flush_rows, flush_interval_ms, hard_cap_rows, chunk_rows)

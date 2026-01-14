@@ -13,11 +13,11 @@ type KnobsPath = (String, String, StreamKind, StreamTransport);
 //             ^exchange_str, symbol, kind, transport
 
 fn parse_exchange_id(exchange_str: &str) -> Result<ExchangeId, AppError> {
-    // If ExchangeId already implements FromStr, use that.
-    // Otherwise, map known strings here.
-    match exchange_str {
-        "binance_linear" => Ok(ExchangeId::BinanceLinear),
-        "hyperliquid_perp" => Ok(ExchangeId::HyperliquidPerp),
+    let normalized = exchange_str.trim().to_lowercase().replace('_', "");
+
+    match normalized.as_str() {
+        "binancelinear" => Ok(ExchangeId::BinanceLinear),
+        "hyperliquidperp" => Ok(ExchangeId::HyperliquidPerp),
         other => Err(AppError::InvalidArgument(format!(
             "unknown exchange: {other}"
         ))),

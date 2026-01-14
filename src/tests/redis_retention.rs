@@ -34,7 +34,7 @@ async fn redis_stream_retention_is_enforced() {
     // ------------------------------------------------------------
     println!("[TEST] connecting Redis client");
 
-    let client = RedisClient::connect_from_config(&cfg)
+    let client = RedisClient::connect_from_config(&cfg, false)
         .await
         .expect("failed to connect Redis client");
 
@@ -143,4 +143,3 @@ async fn redis_stream_retention_is_enforced() {
 
     println!("[TEST] cleanup complete\n");
 }
-

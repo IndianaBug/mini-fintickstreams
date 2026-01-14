@@ -69,8 +69,8 @@ fn base_ctx() -> Ctx {
 
 #[tokio::test]
 async fn binance_depth_deserializes() -> AppResult<()> {
-    let appconfig = load_app_config()?;
-    let exchanges = ExchangeConfigs::new(&appconfig)?;
+    let appconfig = load_app_config(false, 0)?;
+    let exchanges = ExchangeConfigs::new(&appconfig, false, 0)?;
     let binance = exchanges.binance_linear.as_ref().unwrap();
 
     let ctx = base_ctx();
@@ -88,8 +88,8 @@ async fn binance_depth_deserializes() -> AppResult<()> {
 
 #[tokio::test]
 async fn binance_open_interest_deserializes() -> AppResult<()> {
-    let appconfig = load_app_config()?;
-    let exchanges = ExchangeConfigs::new(&appconfig)?;
+    let appconfig = load_app_config(false, 0)?;
+    let exchanges = ExchangeConfigs::new(&appconfig, false, 0)?;
     let binance = exchanges.binance_linear.as_ref().unwrap();
 
     let ctx = base_ctx();
@@ -108,8 +108,8 @@ async fn binance_open_interest_deserializes() -> AppResult<()> {
 
 #[tokio::test]
 async fn binance_funding_rate_deserializes() -> AppResult<()> {
-    let appconfig = load_app_config()?;
-    let exchanges = ExchangeConfigs::new(&appconfig)?;
+    let appconfig = load_app_config(false, 0)?;
+    let exchanges = ExchangeConfigs::new(&appconfig, false, 0)?;
     let binance = exchanges.binance_linear.as_ref().unwrap();
 
     let ctx = base_ctx();
@@ -128,8 +128,8 @@ async fn binance_funding_rate_deserializes() -> AppResult<()> {
 
 #[tokio::test]
 async fn hyperliquid_depth_deserializes() -> AppResult<()> {
-    let appconfig = load_app_config()?;
-    let exchanges = ExchangeConfigs::new(&appconfig)?;
+    let appconfig = load_app_config(false, 0)?;
+    let exchanges = ExchangeConfigs::new(&appconfig, false, 0)?;
     let hyper = exchanges.hyperliquid_perp.as_ref().unwrap();
 
     let ctx = base_ctx();

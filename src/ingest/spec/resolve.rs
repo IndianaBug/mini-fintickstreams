@@ -135,8 +135,8 @@ mod tests {
     #[test]
     fn spec_resolve_smoke_test_with_prints() -> AppResult<()> {
         // 1) Load configs
-        let appconfig = load_app_config()?;
-        let exchangeconfigs = ExchangeConfigs::new(&appconfig)?;
+        let appconfig = load_app_config(false, 0)?;
+        let exchangeconfigs = ExchangeConfigs::new(&appconfig, false, 0)?;
 
         let binance = exchangeconfigs.binance_linear.as_ref().ok_or_else(|| {
             AppError::InvalidConfig("binance_linear missing in ExchangeConfigs".into())

@@ -74,7 +74,7 @@ method = "GET"
 endpoint = "/fapi/v1/openInterest"
 weight = 1
 params = { symbol = "<symbol>" }
-interval_seconds = 3
+interval_seconds = 5
 method = "GET"
 
 [api.funding_rate]

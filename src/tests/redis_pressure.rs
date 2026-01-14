@@ -26,7 +26,7 @@ async fn redis_under_memory_pressure_structure_test() {
     assert!(cfg.enabled, "Redis must be enabled");
 
     let client = Arc::new(
-        RedisClient::connect_from_config(&cfg)
+        RedisClient::connect_from_config(&cfg, false)
             .await
             .expect("failed to connect Redis"),
     );
@@ -144,7 +144,7 @@ async fn redis_intentional_memory_exhaustion() {
     assert!(cfg.enabled, "Redis must be enabled");
 
     let client = Arc::new(
-        RedisClient::connect_from_config(&cfg)
+        RedisClient::connect_from_config(&cfg, false)
             .await
             .expect("failed to connect Redis"),
     );

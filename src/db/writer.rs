@@ -16,13 +16,20 @@
 //!     batch.rows.push(row);
 //!     db.write_batch(&mut batch).await?;
 
+use crate::app::StartStreamParams;
+use crate::app::control::make_batch_key;
+use crate::app::{ExchangeId, StreamId, StreamKnobs, StreamSpec};
+use crate::app::{StreamKind, StreamTransport};
 use crate::db::Batch;
 use crate::db::config::WriterConfig;
 use crate::db::metrics::DbMetrics;
 use crate::db::pools::DbPools;
 use crate::db::traits::BatchInsertRow;
 use crate::error::{AppError, AppResult};
+use sqlx::Row;
 use sqlx::{Postgres, QueryBuilder};
+use std::collections::HashSet;
+use std::str::FromStr;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::Semaphore;
@@ -188,5 +195,268 @@ impl DbHandler {
                 Err(e) => return Err(e),
             }
         }
+    }
+}
+
+// ----------------------------------------------------------------------------
+// Instrument registry methods
+// ----------------------------------------------------------------------------
+
+impl DbHandler {
+    /// Register (or update) a stream in mini_fintickstreams.stream_registry.
+    ///
+    /// - Inserts if missing
+    /// - Updates knobs + enabled + updated_at if exists
+    pub async fn upsert_stream_registry(
+        &self,
+        spec: &StreamSpec,
+        knobs: &StreamKnobs,
+        enabled: bool,
+    ) -> AppResult<()> {
+        // Build the canonical stream_id string (matches your StreamId::new)
+        let stream_id = StreamId::new(spec.exchange, &spec.instrument, spec.kind, spec.transport);
+
+        // Note: kind/transport are stored as TEXT in your table.
+        // If you already have as_str()/Display impls, use those.
+        let kind = spec.kind.to_string(); // e.g. "Trades"
+        let transport = spec.transport.to_string(); // e.g. "Ws" or your lowercase mapping
+        let exchange = spec.exchange;
+        let exchange_id = ExchangeId::from_str(exchange)?;
+        let instrument = &spec.instrument.clone();
+
+        let batch_key = make_batch_key(
+            exchange_id,
+            spec.transport.clone(),
+            spec.kind.clone(),
+            &spec.instrument,
+        )?;
+
+        // --- Route shard + get pool
+        let shard_id = self
+            .pools
+            .shard_id_for(&batch_key.exchange, &batch_key.stream, &batch_key.symbol)
+            .await?;
+
+        let pool = self.pools.pool_by_id(&shard_id).await?;
+        let mut conn = pool.acquire().await.map_err(AppError::Sqlx)?;
+
+        let mut qb: QueryBuilder<Postgres> = QueryBuilder::new(
+            r#"
+            INSERT INTO mini_fintickstreams.stream_registry (
+              stream_id, exchange, instrument, kind, transport, enabled,
+              disable_db_writes, disable_redis_publishes,
+              flush_rows, flush_interval_ms, chunk_rows, hard_cap_rows,
+              created_at, updated_at
+            )
+            "#,
+        );
+
+        qb.push_values(std::iter::once(()), |mut b, _| {
+            b.push_bind(stream_id.0.as_str());
+            b.push_bind(exchange);
+            b.push_bind(instrument);
+            b.push_bind(kind.as_str());
+            b.push_bind(transport.as_str());
+            b.push_bind(enabled);
+
+            b.push_bind(knobs.disable_db_writes);
+            b.push_bind(knobs.disable_redis_publishes);
+
+            b.push_bind(knobs.flush_rows as i32);
+            b.push_bind(knobs.flush_interval_ms as i64);
+            b.push_bind(knobs.chunk_rows as i32);
+            b.push_bind(knobs.hard_cap_rows as i32);
+
+            // timestamps
+            b.push("now()");
+            b.push("now()");
+        });
+
+        qb.push(
+            r#"
+            ON CONFLICT (stream_id) DO UPDATE SET
+              exchange = EXCLUDED.exchange,
+              instrument = EXCLUDED.instrument,
+              kind = EXCLUDED.kind,
+              transport = EXCLUDED.transport,
+              enabled = EXCLUDED.enabled,
+
+              disable_db_writes = EXCLUDED.disable_db_writes,
+              disable_redis_publishes = EXCLUDED.disable_redis_publishes,
+              flush_rows = EXCLUDED.flush_rows,
+              flush_interval_ms = EXCLUDED.flush_interval_ms,
+              chunk_rows = EXCLUDED.chunk_rows,
+              hard_cap_rows = EXCLUDED.hard_cap_rows,
+
+              updated_at = now()
+            "#,
+        );
+
+        qb.build()
+            .execute(&mut *conn)
+            .await
+            .map_err(AppError::Sqlx)?;
+
+        Ok(())
+    }
+
+    pub async fn update_stream_knobs(
+        &self,
+        spec: &StreamSpec,
+        knobs: &StreamKnobs,
+    ) -> AppResult<()> {
+        // route to the same shard as you do elsewhere
+        let exchange_id = ExchangeId::from_str(spec.exchange)?;
+        let batch_key = make_batch_key(
+            exchange_id,
+            spec.transport.clone(),
+            spec.kind.clone(),
+            &spec.instrument,
+        )?;
+
+        let shard_id = self
+            .pools
+            .shard_id_for(&batch_key.exchange, &batch_key.stream, &batch_key.symbol)
+            .await?;
+        let pool = self.pools.pool_by_id(&shard_id).await?;
+        let mut conn = pool.acquire().await.map_err(AppError::Sqlx)?;
+
+        let stream_id = StreamId::new(spec.exchange, &spec.instrument, spec.kind, spec.transport);
+
+        let mut qb: QueryBuilder<Postgres> = QueryBuilder::new(
+            r#"
+            UPDATE mini_fintickstreams.stream_registry
+            SET
+              disable_db_writes = "#,
+        );
+
+        qb.push_bind(knobs.disable_db_writes);
+        qb.push(", disable_redis_publishes = ");
+        qb.push_bind(knobs.disable_redis_publishes);
+
+        qb.push(", flush_rows = ");
+        qb.push_bind(knobs.flush_rows as i32);
+
+        qb.push(", flush_interval_ms = ");
+        qb.push_bind(knobs.flush_interval_ms as i64);
+
+        qb.push(", chunk_rows = ");
+        qb.push_bind(knobs.chunk_rows as i32);
+
+        qb.push(", hard_cap_rows = ");
+        qb.push_bind(knobs.hard_cap_rows as i32);
+
+        qb.push(", updated_at = now() WHERE stream_id = ");
+        qb.push_bind(stream_id.0.as_str());
+
+        let res = qb
+            .build()
+            .execute(&mut *conn)
+            .await
+            .map_err(AppError::Sqlx)?;
+        if res.rows_affected() == 0 {
+            return Err(AppError::StreamNotFound(stream_id.0));
+        }
+
+        Ok(())
+    }
+
+    pub async fn remove_stream(&self, spec: &StreamSpec) -> AppResult<()> {
+        let stream_id = StreamId::new(spec.exchange, &spec.instrument, spec.kind, spec.transport);
+
+        let exchange_id = ExchangeId::from_str(spec.exchange)?;
+        let batch_key = make_batch_key(
+            exchange_id,
+            spec.transport.clone(),
+            spec.kind.clone(),
+            &spec.instrument,
+        )?;
+
+        let shard_id = self
+            .pools
+            .shard_id_for(&batch_key.exchange, &batch_key.stream, &batch_key.symbol)
+            .await?;
+
+        let pool = self.pools.pool_by_id(&shard_id).await?;
+        let mut conn = pool.acquire().await.map_err(AppError::Sqlx)?;
+
+        let mut qb: QueryBuilder<Postgres> =
+            QueryBuilder::new("DELETE FROM mini_fintickstreams.stream_registry WHERE stream_id = ");
+        qb.push_bind(stream_id.0.as_str());
+
+        let res = qb
+            .build()
+            .execute(&mut *conn)
+            .await
+            .map_err(AppError::Sqlx)?;
+        if res.rows_affected() == 0 {
+            return Err(AppError::StreamNotFound(stream_id.0));
+        }
+
+        Ok(())
+    }
+}
+
+impl DbHandler {
+    /// Load all enabled streams from mini_fintickstreams.stream_registry.
+    pub async fn load_enabled_streams_from_registry(&self) -> AppResult<Vec<StartStreamParams>> {
+        // Snapshot shard list once
+        let shards = self.pools.shards_snapshot().await?;
+
+        let mut seen: HashSet<String> = HashSet::new();
+        let mut out: Vec<StartStreamParams> = Vec::new();
+
+        for shard in shards {
+            let pool = self.pools.pool_by_id(&shard.id).await?;
+            let mut conn = pool.acquire().await.map_err(AppError::Sqlx)?;
+
+            // Pull only what we need for restart
+            let rows = sqlx::query(
+                r#"
+                SELECT stream_id, exchange, instrument, kind, transport
+                FROM mini_fintickstreams.stream_registry
+                WHERE enabled = true
+                "#,
+            )
+            .fetch_all(&mut *conn)
+            .await
+            .map_err(AppError::Sqlx)?;
+
+            for r in rows {
+                let stream_id: String = r.try_get("stream_id").map_err(AppError::Sqlx)?;
+                if !seen.insert(stream_id) {
+                    // same row found on another shard (due to your sharding approach)
+                    continue;
+                }
+
+                let exchange_s: String = r.try_get("exchange").map_err(AppError::Sqlx)?;
+                let transport_s: String = r.try_get("transport").map_err(AppError::Sqlx)?;
+                let kind_s: String = r.try_get("kind").map_err(AppError::Sqlx)?;
+                let instrument: String = r.try_get("instrument").map_err(AppError::Sqlx)?;
+
+                let exchange = ExchangeId::from_str(&exchange_s)?;
+                let transport = StreamTransport::from_str(&transport_s)?;
+                let kind = StreamKind::from_str(&kind_s)?;
+
+                out.push(StartStreamParams {
+                    exchange,
+                    transport,
+                    kind,
+                    symbol: instrument,
+                });
+            }
+        }
+
+        // Optional: stable deterministic order on restart
+        out.sort_by(|a, b| {
+            (a.exchange as u8, a.transport as u8, a.kind as u8, &a.symbol).cmp(&(
+                b.exchange as u8,
+                b.transport as u8,
+                b.kind as u8,
+                &b.symbol,
+            ))
+        });
+
+        Ok(out)
     }
 }

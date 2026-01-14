@@ -46,7 +46,7 @@ async fn write_batches_for_all_row_types() {
     // Load config
     // --------------------------------------------------
     println!("[test] Loading TimescaleDB config...");
-    let mut cfg = TimescaleDbConfig::load().expect("failed to load config");
+    let mut cfg = TimescaleDbConfig::load(false, 0).expect("failed to load config");
     cfg.writer.batch_size = 2;
     override_dsn_if_present(&mut cfg);
 

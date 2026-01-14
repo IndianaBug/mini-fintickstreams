@@ -32,7 +32,7 @@ async fn run_stream_smoke(
     );
 
     eprintln!("[test] building AppRuntime...");
-    let rt = AppRuntime::new().await.expect("runtime build");
+    let rt = AppRuntime::new(false, 0).await.expect("runtime build");
     eprintln!("[test] runtime ready");
 
     let symbol = symbol.to_string();

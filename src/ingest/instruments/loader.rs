@@ -259,8 +259,8 @@ mod tests {
     #[tokio::test]
     async fn load_all_instrument_specs_is_not_empty_and_prints() -> AppResult<()> {
         // Load real app config (env/files/etc, whatever your load_app_config does)
-        let appconfig = load_app_config()?;
-        let exchangeconfigs = ExchangeConfigs::new(&appconfig)?;
+        let appconfig = load_app_config(false, 0)?;
+        let exchangeconfigs = ExchangeConfigs::new(&appconfig, false, 0)?;
 
         // No rate limiter registry and no metrics, as requested
         let loader = InstrumentSpecLoader::new(exchangeconfigs, None, None)?;
@@ -281,8 +281,8 @@ mod tests {
 
     #[tokio::test]
     async fn load_and_print_future_linear_instruments() -> AppResult<()> {
-        let appconfig = load_app_config()?;
-        let exchangeconfigs = ExchangeConfigs::new(&appconfig)?;
+        let appconfig = load_app_config(false, 0)?;
+        let exchangeconfigs = ExchangeConfigs::new(&appconfig, false, 0)?;
 
         let loader = InstrumentSpecLoader::new(exchangeconfigs, None, None)?;
 

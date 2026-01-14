@@ -11,19 +11,19 @@ It is designed to run reliably in long-lived environments (bare metal, Docker, K
 ## ✨ Key Features
 
 - Multiple exchanges & stream types  
-  - Binance Linear  
-  - Hyperliquid Perpetuals  
+  - Binance Linear
+  - Hyperliquid Perpetuals
   - Trades, L2 order books, funding, open interest, liquidations
-- Multiple transports  
-  - WebSocket (real-time)  
+- Multiple transports
+  - WebSocket (real-time)
   - HTTP polling
-- Strong persistence & messaging  
-  - PostgreSQL / TimescaleDB for durable storage  
+- Strong persistence & messaging
+  - PostgreSQL / TimescaleDB for durable storage
   - Redis for fan-out and real-time consumers
-- Production-grade observability  
-  - Prometheus metrics (`/metrics`)  
+- Production-grade observability
+  - Prometheus metrics (`/metrics`)
   - Structured logs via `tracing`
-- Dynamic runtime control  
+- Dynamic runtime control
   - Add / remove streams at runtime  
   - Per-stream knobs (DB writes, Redis publishes, batching, etc.)
 - Designed for extensibility  

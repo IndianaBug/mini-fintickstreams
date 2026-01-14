@@ -102,21 +102,24 @@ pub struct AppDeps {
 
     // Health loop handles
     health_loop_handles: HealthLoopHandles,
+
+    from_env: bool,
+    version: u32,
 }
 
 /// Newtype for runtime gates.
 
 impl AppDeps {
-    pub async fn new() -> AppResult<Self> {
+    pub async fn new(from_env: bool, version: u32) -> AppResult<Self> {
         // --------------------------------------------------
         // Load core app config
         // --------------------------------------------------
-        let app_cfgs = Arc::new(load_app_config()?);
+        let app_cfgs = Arc::new(load_app_config(from_env, version)?);
 
         // --------------------------------------------------
         // Load exchange configs (depends on app config)
         // --------------------------------------------------
-        let exchange_cfgs = Arc::new(ExchangeConfigs::new(&app_cfgs)?);
+        let exchange_cfgs = Arc::new(ExchangeConfigs::new(&app_cfgs, from_env, version)?);
 
         // --------------------------------------------------
         // Optional ingest metrics
@@ -128,7 +131,7 @@ impl AppDeps {
         // --------------------------------------------------
         let redis: Option<RedisDeps> = if app_cfgs.redis.enabled {
             let cfg = Arc::new(RedisConfig::load_default()?);
-            Some(Self::bootstrap_redis(cfg).await?)
+            Some(Self::bootstrap_redis(cfg, from_env).await?)
         } else {
             None
         };
@@ -137,7 +140,7 @@ impl AppDeps {
         // DB (optional)
         // --------------------------------------------------
         let db: Option<DbDeps> = if app_cfgs.db.enabled {
-            let cfg = Arc::new(TimescaleDbConfig::load()?);
+            let cfg = Arc::new(TimescaleDbConfig::load(from_env, version)?);
 
             if app_cfgs.db.enabled && !app_cfgs.db.verify {
                 return Err(AppError::InvalidConfig(
@@ -189,7 +192,7 @@ impl AppDeps {
         // --------------------------------------------------
         // Instrument loader (use the already-built exchange_cfgs!)
         // --------------------------------------------------
-        let excfg = ExchangeConfigs::new(&app_cfgs)?;
+        let excfg = ExchangeConfigs::new(&app_cfgs, from_env, version)?;
         let instruments_loader = Arc::new(InstrumentSpecLoader::new(
             excfg,
             http_limiters.clone(),
@@ -223,15 +226,18 @@ impl AppDeps {
             instruments_loader,
 
             health_loop_handles,
+
+            from_env,
+            version,
         })
     }
 
-    pub async fn bootstrap_redis(cfg: Arc<RedisConfig>) -> AppResult<RedisDeps> {
+    pub async fn bootstrap_redis(cfg: Arc<RedisConfig>, from_env: bool) -> AppResult<RedisDeps> {
         // 1) Metrics
         let metrics = Arc::new(RedisMetrics::new()?);
 
         // 2) Connect client
-        let client = Arc::new(RedisClient::connect_from_config(&cfg).await?);
+        let client = Arc::new(RedisClient::connect_from_config(&cfg, from_env).await?);
 
         // 3) Manager (prefer Arc metrics if your manager can accept it;
         //    keeping your existing signature here).
@@ -600,7 +606,7 @@ mod tests {
 
         println!("➡️  Calling AppDeps::new() ...");
 
-        match AppDeps::new().await {
+        match AppDeps::new(false, 0).await {
             Ok(deps) => {
                 println!("✅ AppDeps::new() succeeded");
 

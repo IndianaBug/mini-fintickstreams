@@ -363,9 +363,21 @@ fn is_power_of_ten(mut v: i64) -> bool {
 
 const APP_CONFIG_PATH: &str = "src/config/app.toml";
 
-pub fn load_app_config() -> AppResult<AppConfig> {
-    let contents = fs::read_to_string(APP_CONFIG_PATH)?; // AppError::ConfigIo
-    let config: AppConfig = toml::from_str(&contents)?; // AppError::ConfigToml
+pub fn load_app_config(from_env: bool, version: u32) -> AppResult<AppConfig> {
+    const DEFAULT_K8S_PATH: &str = "/etc/mini-fintickstreams/app.toml";
+
+    let path = if from_env {
+        let key = format!("MINI_FINTICKSTREAMS_APP_CONFIG_PATH_{version}");
+        std::env::var(&key).unwrap_or_else(|_| DEFAULT_K8S_PATH.to_string())
+    } else {
+        APP_CONFIG_PATH.to_string()
+    };
+
+    let contents = std::fs::read_to_string(&path).map_err(|e| {
+        AppError::InvalidConfig(format!("Failed to read app config from {}: {}", path, e))
+    })?;
+    let config: AppConfig = toml::from_str(&contents)?;
+
     validate_config(&config)?;
     Ok(config)
 }
@@ -376,7 +388,7 @@ mod tests {
 
     #[test]
     fn load_and_print_app_config() {
-        let cfg = load_app_config().expect("failed to load app config");
+        let cfg = load_app_config(false, 0).expect("failed to load app config");
 
         println!("id = {}", cfg.id);
         println!("env = {}", cfg.env);

@@ -52,7 +52,7 @@ native_stream_name = "meta"
 endpoint = "/info"
 weight = 1
 params = { type = "meta", dex = "" }
-interval_seconds = 100000000000
+interval_seconds = 100000000000  # symbolic
 method = "POST"
 
 [api.depth]
@@ -60,7 +60,7 @@ native_stream_name = "l2Book"
 endpoint = "/info"
 weight = 1
 params = { type = "l2Book", coin = "<coin>", nSigFigs = 5 }
-interval_seconds = 100000000000
+interval_seconds = 100000000000  # symbolic
 method = "POST"
 
 # --------------------------------------------------

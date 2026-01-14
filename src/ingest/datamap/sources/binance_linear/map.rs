@@ -383,8 +383,8 @@ mod tests {
     /// Creates a real ctx with a real instrument registry (so `ctx.instrument(...)` works).
     // Load real instruments (same approach you used in your loader tests)
     async fn mk_ctx() -> AppResult<MapCtx> {
-        let appconfig = load_app_config()?;
-        let exchangeconfigs = ExchangeConfigs::new(&appconfig)?;
+        let appconfig = load_app_config(false, 0)?;
+        let exchangeconfigs = ExchangeConfigs::new(&appconfig, false, 0)?;
         let loader = InstrumentSpecLoader::new(exchangeconfigs, None, None)?;
         let specs = loader.load_all().await?;
 
@@ -398,7 +398,7 @@ mod tests {
         let symbol = "BTCUSDT";
 
         use crate::app::config::load_app_config;
-        let appconfig = load_app_config()?;
+        let appconfig = load_app_config(false, 0)?;
 
         Ok(MapCtx::new(reg, &appconfig, &exchange, &symbol)?)
     }

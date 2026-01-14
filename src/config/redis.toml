@@ -17,6 +17,9 @@ default_node = "a"
 a = "redis://127.0.0.1:6379"
 # b = "redis://127.0.0.1:6380/0"   # future capacity, new symbols only
 
+[nodes_env]
+a = "REDIS_NODE_A"
+
 # --------------------------------------------------
 # Connection behavior
 # --------------------------------------------------

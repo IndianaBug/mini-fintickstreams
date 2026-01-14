@@ -57,11 +57,19 @@ impl Default for WriterConfig {
 }
 
 impl TimescaleDbConfig {
-    pub fn load() -> AppResult<Self> {
-        let path = std::env::var("TIMESCALE_DB_CONFIG")
-            .unwrap_or_else(|_| "src/config/timescale_db.toml".to_string());
+    pub fn load(from_env: bool, version: u32) -> AppResult<Self> {
+        const DEFAULT_K8S_PATH: &str = "/etc/mini-fintickstreams/timescale.toml";
+        const LOCAL_PATH: &str = "src/config/timescale_db.toml";
 
-        let raw = fs::read_to_string(&path)?;
+        let path = if from_env {
+            let key = format!("MINI_FINTICKSTREAMS_TIMESCALE_CONFIG_PATH_{version}");
+            std::env::var(&key).unwrap_or_else(|_| DEFAULT_K8S_PATH.to_string())
+        } else {
+            LOCAL_PATH.to_string()
+        };
+
+        let raw = fs::read_to_string(&path)
+            .map_err(|e| AppError::InvalidConfig("invalid timescale_db.toml".to_string()))?;
         let cfg: Self = toml::from_str(&raw)?;
         cfg.validate()?;
         Ok(cfg)
@@ -303,7 +311,7 @@ mod tests {
 
     #[test]
     fn load_timescale_config_and_print() {
-        let cfg = TimescaleDbConfig::load().expect("failed to load timescale_db.toml");
+        let cfg = TimescaleDbConfig::load(false, 0).expect("failed to load timescale_db.toml");
         println!("Loaded TimescaleDB config:\n{:#?}", cfg);
         // Minimal sanity assertions so the test actually verifies something
         assert!(!cfg.shards.is_empty());

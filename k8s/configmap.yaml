@@ -1,0 +1,272 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mini-fintickstreams-config
+data:
+  app.toml: |
+    id = "market-ingest"
+    env = "prod"
+    config_version = 1
+    redis_enabled = true
+
+    [db]
+    enabled = true
+    verify = true
+
+    [redis]
+    enabled = true
+
+    [scales]
+    price = 100000000
+    qty = 100000000
+    open_interest = 100000000
+    funding = 1000000000000
+
+    [exchange_toggles]
+    binance_linear = true
+    hyperliquid_perp = true
+
+    [streams]
+    ws_reconnect_backoff_initial_ms = 500
+    ws_reconnect_backoff_max_ms = 30000
+    ws_reconnect_trip_after_failures = 10
+    ws_reconnect_cooldown_seconds = 120
+
+  api.toml: |
+    bind_addr = "0.0.0.0"
+    port = 8080
+
+  binance_linear.toml: |
+    timezone = "UTC"
+    exchange = "binance"
+    margin = "linear"
+    api_pool = "binance_linear"
+    api_base_url = "https://fapi.binance.com"
+    max_weight = 5000
+    window = 60
+    api_weight_header_key = "x-mbx-used-weight-1m"
+    ws_base_url = "wss://fstream.binance.com/ws"
+    ws_connection_timeout_seconds = 86400
+    ws_max_streams_per_connection = 200
+    ws_heartbeat_type = "pong"
+    ws_heartbeat_timeout_seconds = 600
+    ws_heartbeat_frame = "pong"
+    ws_reconnect_attempts_limit = 300
+    ws_reconnect_attempts_reset_seconds = 240
+    ws_subscribe_attempt_limit = 10
+    ws_subscribe_attempts_reset_seconds = 1
+
+    [api.ping]
+    endpoint = "/fapi/v1/ping"
+    weight = 1
+    params = {}
+    interval_seconds = 1000000000000
+    method = "GET"
+
+    [api.server_time]
+    endpoint = "/fapi/v1/time"
+    weight = 1
+    params = {}
+    interval_seconds = 100000000000
+    method = "GET"
+
+    [api.exchange_info]
+    endpoint = "/fapi/v1/exchangeInfo"
+    weight = 1
+    params = {}
+    interval_seconds = 100000000000
+    method = "GET"
+
+    [api.depth]
+    endpoint = "/fapi/v1/depth"
+    weight = 20
+    params = { symbol = "<symbol>", limit = 1000 }
+    interval_seconds = 100000000000
+    method = "GET"
+
+    [api.open_interest]
+    endpoint = "/fapi/v1/openInterest"
+    weight = 1
+    params = { symbol = "<symbol>" }
+    interval_seconds = 5
+    method = "GET"
+
+    [api.funding_rate]
+    endpoint = "/fapi/v1/fundingRate"
+    weight = 5
+    params = { symbol = "<symbol>", limit = 1 }
+    interval_seconds = 1000
+    method = "GET"
+
+    [ws.depth_update]
+    stream_title = "<symbol>@depth@100ms"
+
+    [ws.trades]
+    stream_title = "<symbol>@aggTrade"
+
+    [ws.liquidations]
+    stream_title = "<symbol>@forceOrder"
+
+  hyperliquid_perp.toml: |
+    timezone = "UTC"
+    exchange = "hyperliquid"
+    margin = "perpetual"
+    api_pool = "hyperliquid"
+    api_base_url = "https://api.hyperliquid.xyz"
+    max_weight = 50
+    window = 1
+    api_weight_header_key = "Client-side throttle only"
+    ws_base_url = "wss://api.hyperliquid.xyz/ws"
+    ws_connection_timeout_seconds = 0
+    ws_max_streams_per_connection = 200
+    ws_heartbeat_type = "ping"
+    ws_heartbeat_timeout_seconds = 50
+    ws_heartbeat_frame = { method = "ping" }
+    ws_reconnect_attempts_limit = 300
+    ws_reconnect_attempts_reset_seconds = 240
+    ws_subscribe_attempt_limit = 20
+    ws_subscribe_attempts_reset_seconds = 1
+    ws_subscribe_msg = { method = "subscribe", subscription = { type = "<subscription_type>", coin = "<coin>" } }
+    ws_unsubscribe_msg = { method = "unsubscribe", subscription = { type = "<subscription_type>", coin = "<coin>" } }
+
+    [api.exchange_info]
+    native_stream_name = "meta"
+    endpoint = "/info"
+    weight = 1
+    params = { type = "meta", dex = "" }
+    interval_seconds = 100000000000
+    method = "POST"
+
+    [api.depth]
+    native_stream_name = "l2Book"
+    endpoint = "/info"
+    weight = 1
+    params = { type = "l2Book", coin = "<coin>", nSigFigs = 5 }
+    interval_seconds = 100000000000
+    method = "POST"
+
+    [ws.depth_update]
+    subscription_type = "l2Book"
+    coin = "<coin>"
+
+    [ws.trades]
+    subscription_type = "trades"
+    coin = "<coin>"
+
+    [ws.oi_funding]
+    subscription_type = "activeAssetCtx"
+    coin = "<coin>"
+
+  prometheus.toml: |
+    bind_addr = "0.0.0.0"
+    port = 8000
+    metrics_path = "/metrics"
+
+    [labels]
+    service = "streamer"
+    env = "prod"
+
+    [export]
+    export_build_info = true
+    export_uptime = true
+    export_ingest_rates = true
+    export_process_rates = true
+    export_end_to_end_delay = true
+    export_stream_group_stats = true
+    export_redis_errors = true
+
+    [redis_poll]
+    enabled = true
+    interval_sec = 2
+    use_xinfo_groups = true
+    use_xpending_summary = true
+
+    [targets.redis_exporter]
+    name = "redis"
+    url = "http://127.0.0.1:9121/metrics"
+
+    [targets.postgres_exporter]
+    name = "postgres"
+    url = "http://127.0.0.1:9187/metrics"
+
+    [targets.app]
+    name = "streamer"
+    url = "http://127.0.0.1:8000/metrics"
+
+  redis.toml: |
+    mode = "single"
+    default_node = "a"
+
+    [nodes]
+    a = "redis://127.0.0.1:6379"
+
+    [nodes_env]
+    a = "REDIS_NODE_A"
+
+    [connection]
+    connect_timeout_ms = 2000
+    command_timeout_ms = 2000
+    keepalive_sec = 30
+    tcp_nodelay = true
+
+    [capacity]
+    poll_interval_sec = 2
+    max_memory_pct = 85
+    max_pending = 200000
+    max_p99_cmd_ms = 10
+    redis_publish_latency_window = 2048
+
+    [failover]
+    on_saturated = "stop_assigning_new"
+    on_down = "disable_redis_temporarily"
+
+    [streams]
+    key_format = "stream:{exchange}:{symbol}:{kind}"
+    publish_trades = true
+    publish_depth = true
+    publish_liquidations = true
+    publish_funding = true
+    publish_open_interest = true
+
+    [retention]
+    maxlen = 5000
+    approx = true
+
+    [groups]
+    feature_builder = "cg:features"
+
+  timescale.toml: |
+    [[shards]]
+    id = "shard0"
+    dsn_env = "SHARD_MAIN_DSN"
+    pool_min = 1
+    pool_max = 10
+    connect_timeout_ms = 5000
+    idle_timeout_sec = 300
+
+    [[shards.rules]]
+    exchange = "*"
+    stream = "*"
+    symbol = "*"
+
+    [writer]
+    batch_size = 1000
+    hard_batch_size = 10000
+    flush_interval_ms = 50
+    chunk_rows = 5000
+    max_inflight_batches = 4
+    use_copy = true
+
+    [health]
+    enabled = true
+    evaluate_interval_ms = 1000
+    hold_down_ms = 3000
+    admission_policy = "green_only"
+
+    [health.thresholds]
+    flush_delay_p95_ms_yellow = 200
+    flush_delay_p95_ms_red = 1000
+    pool_wait_p95_ms_yellow = 10
+    pool_wait_p95_ms_red = 50
+    writer_queue_depth_red = 4
+

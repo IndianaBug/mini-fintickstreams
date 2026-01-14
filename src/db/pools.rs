@@ -325,7 +325,7 @@ mod tests {
         }
 
         println!("[test] Loading TimescaleDB config");
-        let mut cfg = TimescaleDbConfig::load().expect("failed to load timescale_db.toml");
+        let mut cfg = TimescaleDbConfig::load(false, 0).expect("failed to load timescale_db.toml");
         override_dsn_if_present(&mut cfg);
 
         println!("[test] Loaded {} shard(s) from config", cfg.shards.len());
@@ -365,7 +365,7 @@ mod tests {
         }
 
         println!("[test] Loading base config for runtime add test");
-        let mut cfg = TimescaleDbConfig::load().expect("failed to load timescale_db.toml");
+        let mut cfg = TimescaleDbConfig::load(false, 0).expect("failed to load timescale_db.toml");
         override_dsn_if_present(&mut cfg);
 
         let base = cfg
@@ -421,7 +421,7 @@ mod tests {
         }
 
         println!("[test] Loading TimescaleDB config for routing test");
-        let mut cfg = TimescaleDbConfig::load().expect("failed to load timescale_db.toml");
+        let mut cfg = TimescaleDbConfig::load(false, 0).expect("failed to load timescale_db.toml");
         override_dsn_if_present(&mut cfg);
 
         println!("[test] Building DbPools with verification");
@@ -464,7 +464,7 @@ mod tests {
         }
 
         println!("[test] Loading TimescaleDB config");
-        let mut cfg = TimescaleDbConfig::load().expect("failed to load timescale_db.toml");
+        let mut cfg = TimescaleDbConfig::load(false, 0).expect("failed to load timescale_db.toml");
         override_dsn_if_present(&mut cfg);
 
         assert_eq!(

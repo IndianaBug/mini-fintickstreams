@@ -1,5 +1,6 @@
 pub mod api;
 pub mod app;
+pub mod cli;
 pub mod crypto_init;
 pub mod db;
 pub mod error;

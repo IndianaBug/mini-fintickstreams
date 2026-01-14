@@ -58,8 +58,8 @@ async fn stop_after_n_text_messages(
 async fn test_live_ws_binance_trades_no_limiter_10_messages() -> AppResult<()> {
     crate::telemetry::init_for_tests();
 
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let cfg = ex
         .binance_linear
         .as_ref()
@@ -98,8 +98,8 @@ async fn test_live_ws_binance_trades_no_limiter_10_messages() -> AppResult<()> {
 async fn test_live_ws_hyperliquid_trades_no_limiter_10_messages() -> AppResult<()> {
     crate::telemetry::init_for_tests();
 
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let cfg = ex
         .hyperliquid_perp
         .as_ref()
@@ -138,8 +138,8 @@ async fn test_live_ws_hyperliquid_trades_no_limiter_10_messages() -> AppResult<(
 async fn test_live_ws_binance_trades_with_limiters_10_messages() -> AppResult<()> {
     crate::telemetry::init_for_tests();
 
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let cfg = ex
         .binance_linear
         .as_ref()
@@ -187,8 +187,8 @@ async fn test_live_ws_binance_trades_with_limiters_10_messages() -> AppResult<()
 async fn test_live_ws_hyperliquid_trades_with_limiters_10_messages() -> AppResult<()> {
     crate::telemetry::init_for_tests();
 
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let cfg = ex
         .hyperliquid_perp
         .as_ref()
@@ -311,8 +311,8 @@ async fn test_local_ws_reconnects_and_pongs_no_limiter_binance() -> AppResult<()
     });
 
     // Load real Binance config and override ws_base_url to local ws://
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let mut cfg = ex
         .binance_linear
         .as_ref()
@@ -404,8 +404,8 @@ async fn test_local_ws_cancel_stops_stuck_read_loop() -> AppResult<()> {
     });
 
     // Load real Binance config and override ws_base_url to local ws://
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let mut cfg = ex
         .binance_linear
         .as_ref()

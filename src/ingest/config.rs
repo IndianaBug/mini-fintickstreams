@@ -93,21 +93,34 @@ pub enum StringOrTable {
 // -----------------------------
 // Loader
 // -----------------------------
-pub fn load_exchange_config(name: &str) -> AppResult<ExchangeConfig> {
-    let path = match name {
-        "binance_linear" => "src/config/binance_linear.toml",
-        "hyperliquid_perp" => "src/config/hyperliquid_perp.toml",
+pub fn load_exchange_config(name: &str, from_env: bool, version: u32) -> AppResult<ExchangeConfig> {
+    // local (dev) paths
+    const LOCAL_BINANCE: &str = "src/config/binance_linear.toml";
+    const LOCAL_HL: &str = "src/config/hyperliquid_perp.toml";
+
+    // k8s default mount paths
+    const K8S_BINANCE: &str = "/etc/mini-fintickstreams/binance_linear.toml";
+    const K8S_HL: &str = "/etc/mini-fintickstreams/hyperliquid_perp.toml";
+
+    let (local_path, k8s_path, env_key_suffix) = match name {
+        "binance_linear" => (LOCAL_BINANCE, K8S_BINANCE, "BINANCE_LINEAR"),
+        "hyperliquid_perp" => (LOCAL_HL, K8S_HL, "HYPERLIQUID_PERP"),
         _ => {
-            return Err(AppError::ConfigIo(std::io::Error::new(
-                std::io::ErrorKind::InvalidInput,
-                format!("unknown exchange config: {name}"),
+            return Err(AppError::InvalidConfig(format!(
+                "unknown exchange config: {name}"
             )));
         }
     };
 
-    let toml_str = fs::read_to_string(path).map_err(AppError::ConfigIo)?;
-    let cfg = toml::from_str::<ExchangeConfig>(&toml_str).map_err(AppError::ConfigToml)?;
+    let path = if from_env {
+        let key = format!("MINI_FINTICKSTREAMS_EXCHANGE_CONFIG_PATH_{version}_{env_key_suffix}");
+        std::env::var(&key).unwrap_or_else(|_| k8s_path.to_string())
+    } else {
+        local_path.to_string()
+    };
 
+    let toml_str = fs::read_to_string(&path).map_err(AppError::ConfigIo)?;
+    let cfg = toml::from_str::<ExchangeConfig>(&toml_str).map_err(AppError::ConfigToml)?;
     Ok(cfg)
 }
 
@@ -118,18 +131,20 @@ pub struct ExchangeConfigs {
 }
 
 impl ExchangeConfigs {
-    pub fn new(app_cfg: &AppConfig) -> AppResult<ExchangeConfigs> {
+    pub fn new(app_cfg: &AppConfig, from_env: bool, version: u32) -> AppResult<ExchangeConfigs> {
         let mut exchanges = ExchangeConfigs {
             binance_linear: None,
             hyperliquid_perp: None,
         };
 
         if app_cfg.exchange_toggles.binance_linear {
-            exchanges.binance_linear = Some(load_exchange_config("binance_linear")?);
+            exchanges.binance_linear =
+                Some(load_exchange_config("binance_linear", from_env, version)?);
         }
 
         if app_cfg.exchange_toggles.hyperliquid_perp {
-            exchanges.hyperliquid_perp = Some(load_exchange_config("hyperliquid_perp")?);
+            exchanges.hyperliquid_perp =
+                Some(load_exchange_config("hyperliquid_perp", from_env, version)?);
         }
 
         Ok(exchanges)
@@ -160,10 +175,10 @@ mod tests {
 
     #[test]
     fn print_exchange_configs() {
-        let binance =
-            load_exchange_config("binance_linear").expect("failed to load binance_linear config");
+        let binance = load_exchange_config("binance_linear", false, 0)
+            .expect("failed to load binance_linear config");
 
-        let hyper = load_exchange_config("hyperliquid_perp")
+        let hyper = load_exchange_config("hyperliquid_perp", false, 0)
             .expect("failed to load hyperliquid_perp config");
 
         println!("\n=== BINANCE LINEAR CONFIG ===");

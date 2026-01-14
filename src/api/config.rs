@@ -16,6 +16,16 @@ impl ApiConfig {
         Ok(cfg)
     }
 
+    pub fn load(from_env: bool, version: u32) -> AppResult<Self> {
+        if !from_env {
+            return Self::load_default();
+        }
+        const DEFAULT_K8S_PATH_API: &str = "/etc/mini-fintickstreams/api.toml";
+        let key = format!("MINI_FINTICKSTREAMS_API_CONFIG_PATH_{version}");
+        let path = std::env::var(&key).unwrap_or_else(|_| DEFAULT_K8S_PATH_API.to_string());
+        Self::load_from_file(path)
+    }
+
     pub fn load_default() -> AppResult<Self> {
         let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("src")

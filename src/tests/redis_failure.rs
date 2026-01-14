@@ -23,7 +23,7 @@ async fn redis_hard_failure_is_survivable() {
     assert!(cfg.enabled);
 
     let client = Arc::new(
-        RedisClient::connect_from_config(&cfg)
+        RedisClient::connect_from_config(&cfg, false)
             .await
             .expect("failed to connect Redis"),
     );

@@ -161,7 +161,7 @@ impl RateLimiterRegistry {
     /// - If an exchange is disabled via toggles -> limiter is None.
     /// - If enabled but config missing -> returns an error (production-safe).
     pub fn new(app_cfg: &AppConfig, metrics: Option<Arc<IngestMetrics>>) -> AppResult<Self> {
-        let exchange_cfgs = ExchangeConfigs::new(app_cfg)?;
+        let exchange_cfgs = ExchangeConfigs::new(app_cfg, false, 0)?;
 
         let binance_linear = if app_cfg.exchange_toggles.binance_linear {
             let cfg = exchange_cfgs.binance_linear.as_ref().ok_or_else(|| {

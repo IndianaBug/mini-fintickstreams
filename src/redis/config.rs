@@ -17,6 +17,9 @@ pub struct RedisConfig {
     pub default_node: String,
 
     pub nodes: HashMap<String, String>,
+    /// Optional env var override per node key (e.g. a -> "REDIS_NODE_A")
+    #[serde(default)]
+    pub nodes_env: HashMap<String, String>,
 
     pub connection: ConnectionConfig,
 
@@ -125,6 +128,24 @@ impl RedisConfig {
                 Err(_) => Err(primary_err),
             },
         }
+    }
+
+    /// Kubernetes-aware loader
+    ///
+    /// - if `from_env == false`: loads from repo (`src/config/redis.toml`)
+    /// - if `from_env == true`: uses `MINI_FINTICKSTREAMS_REDIS_CONFIG_PATH_{version}`
+    ///   and falls back to `/etc/mini-fintickstreams/redis.toml`
+    pub fn load(from_env: bool, version: u32) -> AppResult<Self> {
+        const DEFAULT_K8S_PATH: &str = "/etc/mini-fintickstreams/redis.toml";
+
+        if !from_env {
+            return Self::load_default();
+        }
+
+        let key = format!("MINI_FINTICKSTREAMS_REDIS_CONFIG_PATH_{version}");
+        let path = std::env::var(&key).unwrap_or_else(|_| DEFAULT_K8S_PATH.to_string());
+
+        Self::load_from_file(path)
     }
 
     pub fn validate(&self) -> AppResult<()> {
@@ -266,17 +287,31 @@ impl RedisConfig {
         Ok(())
     }
 
-    /// Helper: get default node URI (only meaningful when enabled).
-    pub fn default_uri(&self) -> AppResult<&str> {
-        self.nodes
-            .get(self.default_node.trim())
-            .map(|s| s.as_str())
-            .ok_or_else(|| {
-                AppError::InvalidConfig(format!(
-                    "redis.toml: default_node '{}' not found in [nodes]",
-                    self.default_node
-                ))
-            })
+    pub fn default_uri(&self, from_env: bool) -> AppResult<String> {
+        let key = self.default_node.trim();
+
+        if from_env {
+            if let Some(env_key) = self.nodes_env.get(key) {
+                match std::env::var(env_key) {
+                    Ok(url) => return Ok(url),
+                    Err(std::env::VarError::NotPresent) => {
+                        // fall back to [nodes]
+                    }
+                    Err(e) => {
+                        return Err(AppError::InvalidConfig(format!(
+                            "redis.toml: env var '{env_key}' for default node '{key}' invalid: {e}"
+                        )));
+                    }
+                }
+            }
+        }
+
+        self.nodes.get(key).cloned().ok_or_else(|| {
+            AppError::InvalidConfig(format!(
+                "redis.toml: default_node '{}' not found in [nodes]",
+                self.default_node
+            ))
+        })
     }
 }
 
@@ -298,7 +333,7 @@ mod tests {
         println!("Mode: {:?}", cfg.mode);
         println!("Default node: {}", cfg.default_node);
 
-        let uri = cfg.default_uri().expect("default_node URI missing");
+        let uri = cfg.default_uri(false).expect("default_node URI missing");
 
         println!("Default Redis URI: {}", uri);
 

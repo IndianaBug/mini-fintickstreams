@@ -1,4 +1,5 @@
 use crate::app::AppRuntime;
+use crate::app::StreamKnobs;
 use crate::app::control::helpers::{ctx_with_symbol, resolve_api_endpoint};
 use crate::app::control::httppoll::http_poll_binancelinear_oi;
 use crate::app::stream_types::{ExchangeId, StreamId, StreamKind, StreamSpec, StreamTransport};
@@ -21,7 +22,11 @@ pub struct StartStreamParams {
 /// - Builds StreamId + StreamSpec
 /// - Spawns worker task
 /// - Inserts StreamHandle into AppState
-pub async fn start_stream(app: &AppRuntime, p: StartStreamParams) -> AppResult<()> {
+pub async fn start_stream(
+    app: &AppRuntime,
+    p: StartStreamParams,
+    add_to_db_registry: bool,
+) -> AppResult<()> {
     // 1) Build StreamSpec / StreamId
     let deps = app.deps.clone();
 
@@ -40,6 +45,8 @@ pub async fn start_stream(app: &AppRuntime, p: StartStreamParams) -> AppResult<(
     if app.state.contains(&id).await {
         return Err(AppError::StreamAlreadyExists(id.to_string()));
     }
+
+    let knobs = StreamKnobs::from_deps(deps.clone());
 
     // 4) Build mapping context / envelope (placeholders)
     let map_ctx = build_map_ctx(app, &spec)?;
@@ -226,6 +233,18 @@ pub async fn start_stream(app: &AppRuntime, p: StartStreamParams) -> AppResult<(
                 _ => Err(AppError::Internal("Unsupported Stream Kind".to_string())),
             }?;
         }
+    }
+
+    if add_to_db_registry {
+        match app.deps.as_ref().db.as_ref() {
+            Some(db) => {
+                db.handler
+                    .as_ref()
+                    .upsert_stream_registry(&spec, &knobs, true)
+                    .await
+            }
+            None => Ok(()),
+        }?;
     }
 
     Ok(())

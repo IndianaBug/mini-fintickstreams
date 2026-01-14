@@ -158,8 +158,8 @@ where
 async fn ws_binance_depth_update_deserializes_10() -> AppResult<()> {
     crate::telemetry::init_for_tests();
 
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let cfg = ex
         .binance_linear
         .as_ref()
@@ -205,8 +205,8 @@ async fn ws_binance_depth_update_deserializes_10() -> AppResult<()> {
 async fn ws_binance_trades_deserializes_10() -> AppResult<()> {
     crate::telemetry::init_for_tests();
 
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let cfg = ex
         .binance_linear
         .as_ref()
@@ -250,8 +250,8 @@ async fn ws_binance_trades_deserializes_10() -> AppResult<()> {
 async fn ws_binance_liquidations_deserializes_10() -> AppResult<()> {
     crate::telemetry::init_for_tests();
 
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let cfg = ex
         .binance_linear
         .as_ref()
@@ -308,8 +308,8 @@ The tests will still print the failing payload if deserialization is attempted a
 async fn ws_hyperliquid_depth_update_deserializes_10() -> AppResult<()> {
     crate::telemetry::init_for_tests();
 
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let cfg = ex
         .hyperliquid_perp
         .as_ref()
@@ -354,8 +354,8 @@ async fn ws_hyperliquid_depth_update_deserializes_10() -> AppResult<()> {
 async fn ws_hyperliquid_trades_deserializes_10() -> AppResult<()> {
     crate::telemetry::init_for_tests();
 
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let cfg = ex
         .hyperliquid_perp
         .as_ref()
@@ -398,8 +398,8 @@ async fn ws_hyperliquid_trades_deserializes_10() -> AppResult<()> {
 async fn ws_hyperliquid_oi_funding_deserializes_10() -> AppResult<()> {
     crate::telemetry::init_for_tests();
 
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let cfg = ex
         .hyperliquid_perp
         .as_ref()
@@ -444,8 +444,8 @@ async fn ws_hyperliquid_oi_funding_deserializes_10() -> AppResult<()> {
 async fn ws_hyperliquid_oi_funding_print_first_50() -> AppResult<()> {
     crate::telemetry::init_for_tests();
 
-    let appcfg = load_app_config()?;
-    let ex = ExchangeConfigs::new(&appcfg)?;
+    let appcfg = load_app_config(false, 0)?;
+    let ex = ExchangeConfigs::new(&appcfg, false, 0)?;
     let cfg = ex
         .hyperliquid_perp
         .as_ref()

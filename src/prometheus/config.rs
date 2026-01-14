@@ -72,6 +72,22 @@ impl PrometheusConfig {
         Self::load_from_file(path)
     }
 
+    /// - if `from_env == false`: loads from repo (`src/config/prometheus.toml`)
+    /// - if `from_env == true`: uses `MINI_FINTICKSTREAMS_PROMETHEUS_CONFIG_PATH_{version}`
+    ///   and falls back to `/etc/mini-fintickstreams/prometheus.toml`
+    pub fn load(from_env: bool, version: u32) -> AppResult<Self> {
+        const DEFAULT_K8S_PATH: &str = "/etc/mini-fintickstreams/prometheus.toml";
+
+        if !from_env {
+            return Self::load_default();
+        }
+
+        let key = format!("MINI_FINTICKSTREAMS_PROMETHEUS_CONFIG_PATH_{version}");
+        let path = std::env::var(&key).unwrap_or_else(|_| DEFAULT_K8S_PATH.to_string());
+
+        Self::load_from_file(path)
+    }
+
     pub fn validate(&self) -> AppResult<()> {
         // bind_addr should be parseable IP (you can later extend to hostname)
         let _ip: IpAddr = self.bind_addr.parse().map_err(|e| {

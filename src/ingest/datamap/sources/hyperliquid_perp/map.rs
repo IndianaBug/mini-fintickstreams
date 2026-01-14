@@ -114,7 +114,7 @@ impl MapToEvents for HyperliquidPerpWsOIFundingUpdate {
         let a = self.data.ctx;
 
         // Hyperliquid WS payload doesn't include a timestamp here; use ingest time.
-        let time = ctx.now;
+        let time = chrono::Utc::now();
 
         // OI
         let oi_i = ctx.open_interest_str_to_i64(&a.open_interest)?;
@@ -235,8 +235,8 @@ mod tests {
     }
 
     async fn mk_ctx() -> AppResult<MapCtx> {
-        let appconfig = load_app_config()?;
-        let exchangeconfigs = ExchangeConfigs::new(&appconfig)?;
+        let appconfig = load_app_config(false, 0)?;
+        let exchangeconfigs = ExchangeConfigs::new(&appconfig, false, 0)?;
         let loader = InstrumentSpecLoader::new(exchangeconfigs, None, None)?;
         let specs = loader.load_all().await?;
         let reg = InstrumentRegistry::build(specs)?;

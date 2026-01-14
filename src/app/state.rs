@@ -216,7 +216,19 @@ impl AppState {
             inner: Arc::new(RwLock::new(AppStateInner::default())),
         }
     }
-
+    // ---------------------------
+    // Retrive Helpers
+    // ---------------------------
+    /// Get a clone of the StreamSpec for a running stream (if present).
+    pub async fn stream_spec(&self, id: &StreamId) -> Option<StreamSpec> {
+        let inner = self.inner.read().await;
+        inner.streams.get(id).map(|h| h.spec.clone())
+    }
+    /// Get a snapshot of knobs (current value).
+    pub async fn stream_knobs_snapshot(&self, id: &StreamId) -> Option<StreamKnobs> {
+        let inner = self.inner.read().await;
+        inner.streams.get(id).map(|h| h.knobs_snapshot())
+    }
     // --------------------------------------------------
     // Registry ops (used by control plane)
     // --------------------------------------------------
@@ -249,7 +261,6 @@ impl AppState {
         Ok(())
     }
 
-    /// NOTE: This does NOT cancel or await the task. Use `stop_and_remove` for graceful shutdown.
     pub async fn remove(&self, id: &StreamId) -> Option<StreamHandle> {
         self.inner.write().await.streams.remove(id)
     }

@@ -75,9 +75,9 @@ pub async fn http_poll_binancelinear_oi(
         writer_cfg,
     )?;
 
+    let knobs = StreamKnobs::from_deps(deps.clone());
     // Runtime knobs for redis / db
-    let (knobs_tx, mut knobs_rx) =
-        tokio::sync::watch::channel(crate::app::StreamKnobs::from_deps(deps.clone()));
+    let (knobs_tx, mut knobs_rx) = tokio::sync::watch::channel(knobs.clone());
 
     let batch = Arc::new(tokio::sync::Mutex::new(db_batch));
 
@@ -205,7 +205,7 @@ pub async fn http_poll_binancelinear_oi(
 
     // Build handle + register in state
     let handle = StreamHandle::new(
-        stream_spec,
+        stream_spec.clone(),
         stream_status,
         cancel,
         task,

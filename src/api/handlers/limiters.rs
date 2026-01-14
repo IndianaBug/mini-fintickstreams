@@ -20,14 +20,17 @@ pub async fn get_limiters(
 ) -> impl IntoResponse {
     let exchange: Option<ExchangeId> = match q.exchange.as_deref() {
         None => None,
-        Some("binance_linear") => Some(ExchangeId::BinanceLinear),
-        Some("hyperliquid_perp") => Some(ExchangeId::HyperliquidPerp),
-        Some(other) => {
-            return (
-                StatusCode::BAD_REQUEST,
-                format!("unknown exchange '{other}'"),
-            )
-                .into_response();
+        Some(s) => {
+            let normalized = s.trim().to_lowercase().replace('_', "");
+
+            match normalized.as_str() {
+                "binancelinear" => Some(ExchangeId::BinanceLinear),
+                "hyperliquidperp" => Some(ExchangeId::HyperliquidPerp),
+                _ => {
+                    return (StatusCode::BAD_REQUEST, format!("unknown exchange '{s}'"))
+                        .into_response();
+                }
+            }
         }
     };
 
@@ -40,4 +43,3 @@ pub async fn get_limiters(
             .into_response(),
     }
 }
-

@@ -138,7 +138,8 @@ impl ApiClient {
                             if let Some(m) = &self.metrics {
                                 m.inc_error();
                             }
-                            return Err(e);
+                            tracing::warn!(error=?e, "on_item failed; dropping this snapshot");
+                            continue; // ✅ skip this snapshot, keep polling
                         }
                     }
                 }
@@ -247,8 +248,8 @@ mod tests {
     #[tokio::test]
     async fn test_api_calls_binance_and_hyperliquid_depth() -> AppResult<()> {
         // 1) Load configs
-        let appconfig = load_app_config()?;
-        let exchangeconfigs = ExchangeConfigs::new(&appconfig)?;
+        let appconfig = load_app_config(false, 0)?;
+        let exchangeconfigs = ExchangeConfigs::new(&appconfig, false, 0)?;
 
         let binance = exchangeconfigs.binance_linear.as_ref().ok_or_else(|| {
             AppError::InvalidConfig("binance_linear missing in ExchangeConfigs".into())

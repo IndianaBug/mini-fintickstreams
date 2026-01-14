@@ -25,13 +25,14 @@ pub struct RedisClient {
 
 impl RedisClient {
     /// Connect using RedisConfig.default_node URI and connection timeouts.
-    pub async fn connect_from_config(cfg: &RedisConfig) -> AppResult<Self> {
-        let uri = cfg.default_uri()?; // you already have this helper
+    pub async fn connect_from_config(cfg: &RedisConfig, url_from_env: bool) -> AppResult<Self> {
+        let uri = cfg.default_uri(url_from_env)?;
+        let uri_c = uri.clone();
         let connect_timeout = Duration::from_millis(cfg.connection.connect_timeout_ms);
         let command_timeout = Duration::from_millis(cfg.connection.command_timeout_ms);
 
         let client = redis::Client::open(uri)
-            .map_err(|e| AppError::InvalidConfig(format!("invalid redis uri '{uri}': {e}")))?;
+            .map_err(|e| AppError::InvalidConfig(format!("invalid redis uri '{uri_c}': {e}")))?;
 
         // Optional: ConnectionManager config (reconnect behavior).
         // Keep minimal for now.

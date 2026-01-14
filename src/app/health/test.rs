@@ -11,7 +11,7 @@ mod tests {
     use crate::app::health::types::{HealthState, RuntimeSnapshot};
 
     fn load_cfg() -> Arc<crate::app::config::AppConfig> {
-        Arc::new(load_app_config().expect("failed to load app config"))
+        Arc::new(load_app_config(false, 0).expect("failed to load app config"))
     }
 
     #[test]
