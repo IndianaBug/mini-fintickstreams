@@ -130,7 +130,7 @@ impl AppDeps {
         // Redis (optional)
         // --------------------------------------------------
         let redis: Option<RedisDeps> = if app_cfgs.redis.enabled {
-            let cfg = Arc::new(RedisConfig::load_default()?);
+            let cfg = Arc::new(RedisConfig::load(from_env, version)?);
             Some(Self::bootstrap_redis(cfg, from_env).await?)
         } else {
             None
