@@ -260,7 +260,7 @@ This project interacts with **live exchange APIs**. Use responsibly and ensure y
 - Running **multiple instances** of this service has implications:
   - **Binance Linear**
     - Rate limiters operate *per process*
-    - Multiple instances will each maintain independent limits
+    - Multiple instances will NOT each maintain independent limits
     - Horizontal scaling requires external coordination if strict global limits are needed
   - **Hyperliquid**
     - Predominantly WebSocket-based
