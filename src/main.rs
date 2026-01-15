@@ -52,7 +52,7 @@ fn main() -> AppResult<()> {
         };
 
         let api_task = run_api_server(runtime.clone(), from_env, cli.stream_version);
-        let metrics_task = run_metrics_server(gather);
+        let metrics_task = run_metrics_server(gather, from_env, cli.stream_version);
 
         // ✅ Keep running until one task errors/exits, or Ctrl+C
         tokio::select! {

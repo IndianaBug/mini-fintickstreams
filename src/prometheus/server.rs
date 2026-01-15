@@ -19,11 +19,11 @@ struct AppState {
     content_type: HeaderValue,
 }
 
-pub async fn run_metrics_server<G>(gather: G) -> AppResult<()>
+pub async fn run_metrics_server<G>(gather: G, from_env: bool, version: u32) -> AppResult<()>
 where
     G: Fn() -> AppResult<String> + Send + Sync + 'static,
 {
-    let cfg = PrometheusConfig::load_default()?;
+    let cfg = PrometheusConfig::load(from_env, version)?;
     let addr: SocketAddr = format!("{}:{}", cfg.bind_addr, cfg.port)
         .parse()
         .map_err(|e| AppError::InvalidConfig(format!("Invalid bind/port: {e}")))?;

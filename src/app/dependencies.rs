@@ -300,6 +300,7 @@ impl AppDeps {
         let http_limiters = if any_http {
             Some(Arc::new(RateLimiterRegistry::new(
                 app_cfg,
+                exchange_cfgs,
                 ingest_metrics.clone(),
             )?))
         } else {
