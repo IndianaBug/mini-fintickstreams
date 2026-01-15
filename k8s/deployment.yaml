@@ -18,39 +18,27 @@ spec:
           image: your-image:tag
           imagePullPolicy: IfNotPresent
 
-          # Use sh -c so we can use env vars inside args
-          command: ["/bin/sh","-c"]
-          args:
-            - >
-              exec /usr/local/bin/mini-fintickstreams
-              --config env
-              --shutdown-action ${MINI_SHUTDOWN_ACTION:-restore-streams}
-              --workers ${MINI_WORKERS:-2}
+          args: ["--config","env","--shutdown-action","restore-streams","--workers","2","--stream-version","1"]
 
           env:
             - name: RUST_BACKTRACE
               value: "1"
-            - name: MINI_WORKERS
-              value: "2"
-            # choose restore-streams in prod; set to none for a “first run” if you insist
-            - name: MINI_SHUTDOWN_ACTION
-              value: "restore-streams"
 
-            # Your config-path envs
+            # config paths (match your Dockerfile/app)
             - name: MINI_FINTICKSTREAMS_APP_CONFIG_PATH_1
               value: /etc/mini-fintickstreams/app.toml
             - name: MINI_FINTICKSTREAMS_API_CONFIG_PATH_1
               value: /etc/mini-fintickstreams/api.toml
             - name: MINI_FINTICKSTREAMS_TIMESCALE_CONFIG_PATH_1
-              value: /etc/mini-fintickstreams/timescale.toml
-            - name: MINI_FINTICKSTREAMS_EXCHANGE_CONFIG_PATH_1_BINANCE_LINEAR
-              value: /etc/mini-fintickstreams/binance_linear.toml
-            - name: MINI_FINTICKSTREAMS_EXCHANGE_CONFIG_PATH_1_HYPERLIQUID_PERP
-              value: /etc/mini-fintickstreams/hyperliquid_perp.toml
+              value: /etc/mini-fintickstreams/timescale_db.toml
             - name: MINI_FINTICKSTREAMS_PROMETHEUS_CONFIG_PATH_1
               value: /etc/mini-fintickstreams/prometheus.toml
             - name: MINI_FINTICKSTREAMS_REDIS_CONFIG_PATH_1
               value: /etc/mini-fintickstreams/redis.toml
+            - name: MINI_FINTICKSTREAMS_EXCHANGE_CONFIG_PATH_1_BINANCE_LINEAR
+              value: /etc/mini-fintickstreams/binance_linear.toml
+            - name: MINI_FINTICKSTREAMS_EXCHANGE_CONFIG_PATH_1_HYPERLIQUID_PERP
+              value: /etc/mini-fintickstreams/hyperliquid_perp.toml
 
           envFrom:
             - secretRef:
@@ -85,7 +73,6 @@ spec:
             timeoutSeconds: 2
             failureThreshold: 6
 
-          # Optional: give it time to flush on SIGTERM
           lifecycle:
             preStop:
               exec:

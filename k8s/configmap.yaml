@@ -88,7 +88,7 @@ data:
     endpoint = "/fapi/v1/openInterest"
     weight = 1
     params = { symbol = "<symbol>" }
-    interval_seconds = 5
+    interval_seconds = 6
     method = "GET"
 
     [api.funding_rate]
@@ -235,7 +235,7 @@ data:
     [groups]
     feature_builder = "cg:features"
 
-  timescale.toml: |
+  timescale_db.toml: |
     [[shards]]
     id = "shard0"
     dsn_env = "SHARD_MAIN_DSN"
