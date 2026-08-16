@@ -11,24 +11,24 @@ The current layout is usable, but it is not yet a clean, unified configuration s
 
 ## Quick Navigation
 
-- [[#Configuration Overview]]
-- [[#How Configuration Is Loaded]]
-  - [[#Local File Mode]]
-  - [[#Environment Path Mode]]
-  - [[#Configuration Version Selector]]
-- [[#Required Environment Variables]]
-- [[#Configuration Files]]
-  - [[#app.toml]]
-  - [[#api.toml]]
-  - [[#binance_linear.toml]]
-  - [[#bybit_linear.toml]]
-  - [[#hyperliquid_perp.toml]]
-  - [[#timescale_db.toml]]
-  - [[#redis.toml]]
-  - [[#prometheus.toml]]
-- [[#Kubernetes Configuration]]
-- [[#Known Rough Edges]]
-- [[#Safe Editing Checklist]]
+- [Configuration Overview](#configuration-overview)
+- [How Configuration Is Loaded](#how-configuration-is-loaded)
+  - [Local File Mode](#local-file-mode)
+  - [Environment Path Mode](#environment-path-mode)
+  - [Configuration Version Selector](#configuration-version-selector)
+- [Required Environment Variables](#required-environment-variables)
+- [Configuration Files](#configuration-files)
+  - [`app.toml`](#apptoml)
+  - [`api.toml`](#apitoml)
+  - [`binance_linear.toml`](#binance_lineartoml)
+  - [`bybit_linear.toml`](#bybit_lineartoml)
+  - [`hyperliquid_perp.toml`](#hyperliquid_perptoml)
+  - [`timescale_db.toml`](#timescale_dbtoml)
+  - [`redis.toml`](#redistoml)
+  - [`prometheus.toml`](#prometheustoml)
+- [Kubernetes Configuration](#kubernetes-configuration)
+- [Known Rough Edges](#known-rough-edges)
+- [Safe Editing Checklist](#safe-editing-checklist)
 
 ---
 
