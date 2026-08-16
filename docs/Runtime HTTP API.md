@@ -1,14 +1,14 @@
 ## Quick Navigation
 
-- [[#General Information]]
-- [[#Using jq]]
-- [[#Health Checks]]
-- [[#Stream Management]]
-- [[#Stream Knobs]]
-- [[#Instruments Registry]]
-- [[#Rate Limiters]]
-- [[#Experimental Web Dashboard]]
-- [[#Error Handling]]
+- [General Information](#general-information)
+- [Using jq](#using-jq)
+- [Health Checks](#health-checks)
+- [Stream Management](#stream-management)
+- [Stream Knobs](#stream-knobs)
+- [Instruments Registry](#instruments-registry)
+- [Rate Limiters](#rate-limiters)
+- [Experimental Web Dashboard](#experimental-web-dashboard)
+- [Error Handling](#error-handling)
 
 ---
 
