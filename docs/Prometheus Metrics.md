@@ -5,13 +5,13 @@ The goal is not to document every possible PromQL query, but to explain what eac
 
 ## Quick Navigation
 
-- [[#Most Important Metrics]]
-- [[#Application and Runtime]]
-- [[#Ingest and WebSocket]]
-- [[#Database]]
-- [[#Redis]]
-- [[#Useful PromQL]]
-- [[#Metric Types]]
+- [Most Important Metrics](#most-important-metrics)
+- [Application and Runtime](#application-and-runtime)
+- [Ingest and WebSocket](#ingest-and-websocket)
+- [Database](#database)
+- [Redis](#redis)
+- [Useful PromQL](#useful-promql)
+- [Metric Types](#metric-types)
 
 ---
 
