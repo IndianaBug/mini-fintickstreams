@@ -1,16 +1,16 @@
 ## Quick Navigation
 
-- [[#Current Support Status]]
-- [[#Important Design Note]]
-- [[#Why Rust Was Used]]
-- [[#How Exchange Data Moves Through the System]]
-- [[#Why There Is No Universal Exchange Adapter]]
-- [[#What Is Reusable]]
-- [[#What Is Currently Messy]]
-- [[#Adding an Exchange in the Current Codebase]]
-- [[#Validation Requirements]]
-- [[#Future Refactor Direction]]
-- [[#Practical Conclusion]]
+- [Current Support Status](#current-support-status)
+- [Important Design Note](#important-design-note)
+- [Why Rust Was Used](#why-rust-was-used)
+- [How Exchange Data Moves Through the System](#how-exchange-data-moves-through-the-system)
+- [Why There Is No Universal Exchange Adapter](#why-there-is-no-universal-exchange-adapter)
+- [What Is Reusable](#what-is-reusable)
+- [What Is Currently Messy](#what-is-currently-messy)
+- [Adding an Exchange in the Current Codebase](#adding-an-exchange-in-the-current-codebase)
+- [Validation Requirements](#validation-requirements)
+- [Future Refactor Direction](#future-refactor-direction)
+- [Practical Conclusion](#practical-conclusion)
 
 ---
 
