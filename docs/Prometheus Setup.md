@@ -3,23 +3,23 @@ This guide assumes you already know the basics of Prometheus, Linux services, Ku
 
 ## Quick Navigation
 
-- [[#Why Prometheus]]
-- [[#Local Setup]]
-  - [[#Verify the App Metrics Endpoint]]
-  - [[#Install Prometheus]]
-  - [[#Add the Scrape Target]]
-  - [[#Verify Prometheus]]
-- [[#Useful PromQL]]
-  - [[#Find Only This Application's Metrics]]
-  - [[#Inspect WebSocket Reconnects]]
-  - [[#Query Through the HTTP API]]
-- [[#Kubernetes Setup]]
-  - [[#Use the Existing Kubernetes Templates]]
-  - [[#Plain Prometheus Configuration]]
-  - [[#Prometheus Operator and ServiceMonitor]]
-  - [[#Verify the Kubernetes Target]]
-- [[#Troubleshooting]]
-- [[#Good Demo Flow]]
+- [Why Prometheus](#why-prometheus)
+- [Local Setup](#local-setup)
+  - [Verify the App Metrics Endpoint](#verify-the-app-metrics-endpoint)
+  - [Install Prometheus](#install-prometheus)
+  - [Add the Scrape Target](#add-the-scrape-target)
+  - [Verify Prometheus](#verify-prometheus)
+- [Useful PromQL](#useful-promql)
+  - [Find Only This Application's Metrics](#find-only-this-applications-metrics)
+  - [Inspect WebSocket Reconnects](#inspect-websocket-reconnects)
+  - [Query Through the HTTP API](#query-through-the-http-api)
+- [Kubernetes Setup](#kubernetes-setup)
+  - [Use the Existing Kubernetes Templates](#use-the-existing-kubernetes-templates)
+  - [Plain Prometheus Configuration](#plain-prometheus-configuration)
+  - [Prometheus Operator and ServiceMonitor](#prometheus-operator-and-servicemonitor)
+  - [Verify the Kubernetes Target](#verify-the-kubernetes-target)
+- [Troubleshooting](#troubleshooting)
+- [Good Demo Flow](#good-demo-flow)
 
 ---
 
