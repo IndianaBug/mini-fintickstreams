@@ -1,0 +1,13 @@
+apiVersion: 1
+
+providers:
+  - name: mini-fintickstreams
+    orgId: 1
+    folder: mini-fintickstreams
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+
+    options:
+      path: /var/lib/grafana/dashboards/mini-fintickstreams

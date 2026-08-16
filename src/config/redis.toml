@@ -79,5 +79,4 @@ approx = true
 [groups]
 feature_builder = "cg:features"
 # ml_infer      = "cg:ml"
-# NOTE: consumer behavior is configured in consumer services
 

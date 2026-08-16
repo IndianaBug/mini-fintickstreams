@@ -1,6 +1,5 @@
 CREATE SCHEMA IF NOT EXISTS mini_fintickstreams;
 
--- Optional: make unqualified names resolve here first for this session
 SET search_path = mini_fintickstreams, public;
 
 CREATE TABLE IF NOT EXISTS mini_fintickstreams.stream_registry (

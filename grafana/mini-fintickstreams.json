@@ -1,0 +1,431 @@
+{
+  "uid": "mini-fintickstreams-runtime",
+  "title": "mini-fintickstreams — Runtime Overview",
+  "tags": [
+    "mini-fintickstreams",
+    "prometheus",
+    "market-data"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "5s",
+  "time": {
+    "from": "now-30m",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Application Health",
+      "type": "stat",
+      "gridPos": {"x": 0, "y": 0, "w": 5, "h": 4},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "app_health{job=\"mini-fintickstreams\"}"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {"text": "UNHEALTHY"},
+                "1": {"text": "HEALTHY"}
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "green", "value": 1}
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "title": "Runtime Health",
+      "type": "stat",
+      "gridPos": {"x": 5, "y": 0, "w": 5, "h": 4},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "runtime_health{job=\"mini-fintickstreams\"}"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {"text": "RED"},
+                "1": {"text": "GREEN"}
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "green", "value": 1}
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "title": "Active Streams",
+      "type": "stat",
+      "gridPos": {"x": 10, "y": 0, "w": 4, "h": 4},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "streams_active{job=\"mini-fintickstreams\"}"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "colorMode": "value",
+        "graphMode": "area"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Database Health",
+      "type": "stat",
+      "gridPos": {"x": 14, "y": 0, "w": 5, "h": 4},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "db_health_state{job=\"mini-fintickstreams\"}"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {"text": "GREEN"},
+                "1": {"text": "YELLOW"},
+                "2": {"text": "RED"}
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1},
+              {"color": "red", "value": 2}
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "title": "Redis",
+      "type": "stat",
+      "gridPos": {"x": 19, "y": 0, "w": 5, "h": 4},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "redis_enabled_state{job=\"mini-fintickstreams\"}"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {"text": "DISABLED"},
+                "1": {"text": "ENABLED"}
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "green", "value": 1}
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+
+    {
+      "id": 6,
+      "title": "Messages Processed / sec",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 4, "w": 12, "h": 8},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(ingest_processed_total{job=\"mini-fintickstreams\"}[1m])",
+          "legendFormat": "processed/sec"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Ingest Lag p95",
+      "type": "timeseries",
+      "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(ingest_lag_seconds_bucket{job=\"mini-fintickstreams\"}[5m])))",
+          "legendFormat": "p95 lag"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 8,
+      "title": "Ingest Errors — Last 5m",
+      "type": "stat",
+      "gridPos": {"x": 0, "y": 12, "w": 6, "h": 5},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "increase(ingest_errors_total{job=\"mini-fintickstreams\"}[5m])"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1},
+              {"color": "red", "value": 10}
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 9,
+      "title": "WS Reconnects — Last 5m",
+      "type": "stat",
+      "gridPos": {"x": 6, "y": 12, "w": 6, "h": 5},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "increase(ws_reconnect_attempts_total{job=\"mini-fintickstreams\"}[5m])"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "colorMode": "value",
+        "graphMode": "area"
+      }
+    },
+
+    {
+      "id": 10,
+      "title": "DB Rows Written / sec",
+      "type": "timeseries",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "rate(db_rows_written_total{job=\"mini-fintickstreams\"}[1m])",
+          "legendFormat": "rows/sec"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "DB Write Latency p95",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 8},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(db_write_latency_seconds_bucket{job=\"mini-fintickstreams\"}[5m])))",
+          "legendFormat": "p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 12,
+      "title": "DB Writer Queue Depth",
+      "type": "timeseries",
+      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 8},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "db_writer_queue_depth{job=\"mini-fintickstreams\"}",
+          "legendFormat": "queue depth"
+        }
+      ]
+    },
+
+    {
+      "id": 13,
+      "title": "Failed DB Batches",
+      "type": "stat",
+      "gridPos": {"x": 0, "y": 28, "w": 12, "h": 5},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "increase(db_failed_batches_total{job=\"mini-fintickstreams\"}[5m])"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "red", "value": 1}
+            ]
+          }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 14,
+      "title": "Dropped DB Rows",
+      "type": "stat",
+      "gridPos": {"x": 12, "y": 28, "w": 12, "h": 5},
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mini-fintickstreams-prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "increase(db_rows_dropped_total{job=\"mini-fintickstreams\"}[5m])"
+        }
+      ],
+      "options": {
+        "reduceOptions": {"calcs": ["lastNotNull"]},
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "red", "value": 1}
+            ]
+          }
+        },
+        "overrides": []
+      }
+    }
+  ]
+}
