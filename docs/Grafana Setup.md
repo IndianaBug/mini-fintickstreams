@@ -3,23 +3,22 @@ This guide assumes you already know the basics of Grafana, Prometheus, Linux ser
 
 ## Quick Navigation
 
-- [[#Why Grafana]]
-- [[#Dashboard Files]]
-- [[#Local Setup]]
-  - [[#Install Grafana]]
-  - [[#Check Prometheus First]]
-  - [[#Provision the Dashboard]]
-  - [[#Open the Dashboard]]
-  - [[#Update the Dashboard]]
-- [[#What the Dashboard Shows]]
-- [[#Kubernetes Setup]]
-  - [[#Kubernetes Networking]]
-  - [[#Create the Kubernetes Datasource File]]
-  - [[#Create the ConfigMaps]]
-  - [[#Mount the Files into Grafana]]
-  - [[#Reload Grafana in Kubernetes]]
-- [[#Troubleshooting]]
-
+- [Why Grafana](#why-grafana)
+- [Dashboard Files](#dashboard-files)
+- [Local Setup](#local-setup)
+  - [Install Grafana](#install-grafana)
+  - [Check Prometheus First](#check-prometheus-first)
+  - [Provision the Dashboard](#provision-the-dashboard)
+  - [Open the Dashboard](#open-the-dashboard)
+  - [Update the Dashboard](#update-the-dashboard)
+- [What the Dashboard Shows](#what-the-dashboard-shows)
+- [Kubernetes Setup](#kubernetes-setup)
+  - [Kubernetes Networking](#kubernetes-networking)
+  - [Create the Kubernetes Datasource File](#create-the-kubernetes-datasource-file)
+  - [Create the ConfigMaps](#create-the-configmaps)
+  - [Mount the Files into Grafana](#mount-the-files-into-grafana)
+  - [Reload Grafana in Kubernetes](#reload-grafana-in-kubernetes)
+- [Troubleshooting](#troubleshooting)
 ---
 
 ## Why Grafana
