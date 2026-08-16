@@ -108,20 +108,6 @@ Grafana exists to answer one main question immediately:
 
 ![Grafana runtime dashboard](docs/images/grafana%20dash.png)
 
-The included dashboard shows:
-
-- application and runtime health;
-- active streams;
-- processed messages per second;
-- database rows written per second;
-- ingestion lag;
-- WebSocket reconnects;
-- database write latency;
-- writer queue depth;
-- failed batches;
-- dropped rows;
-- optional Redis health.
-
 The dashboard is provisioned from files in `grafana/`, so it can be recreated without manually building every panel.
 
 ---
