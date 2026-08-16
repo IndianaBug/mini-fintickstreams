@@ -1,8 +1,8 @@
-<div align="left">
-
-# mini-fintickstreams
+# Real-Time Market Data Infrastructure in Rust
 
 ### A blazingly fast Rust service for high-frequency crypto market-data streaming and storage
+
+<div align="center">
 
 ![Rust](https://img.shields.io/badge/Rust-2024-000000?style=flat-square&logo=rust&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-TimescaleDB-336791?style=flat-square&logo=postgresql&logoColor=white)
