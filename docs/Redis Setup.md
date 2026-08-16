@@ -3,13 +3,13 @@ This guide assumes you already know the basics of Redis, Linux services, Kuberne
 
 ## Quick Navigation
 
-- [[#Why Redis Was Added]]
-- [[#Why Redis Is Not the Production Hot Path]]
-- [[#How This Project Uses Redis]]
-- [[#Local Setup]]
-- [[#Kubernetes Setup]]
-- [[#Monitoring Redis]]
-- [[#Disabling Redis]]
+- [Why Redis Was Added](#why-redis-was-added)
+- [Why Redis Is Not the Production Hot Path](#why-redis-is-not-the-production-hot-path)
+- [How This Project Uses Redis](#how-this-project-uses-redis)
+- [Local Setup](#local-setup)
+- [Kubernetes Setup](#kubernetes-setup)
+- [Monitoring Redis](#monitoring-redis)
+- [Disabling Redis](#disabling-redis)
 
 ---
 
