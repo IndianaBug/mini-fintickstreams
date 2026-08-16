@@ -1,8 +1,8 @@
+<div align="center">
+
 # Real-Time Market Data Infrastructure in Rust
 
-### A blazingly fast Rust service for high-frequency crypto market-data streaming and storage
-
-<div align="center">
+**A high-performance Rust service for high-frequency crypto market-data streaming and storage**
 
 ![Rust](https://img.shields.io/badge/Rust-2024-000000?style=flat-square&logo=rust&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-TimescaleDB-336791?style=flat-square&logo=postgresql&logoColor=white)
@@ -10,9 +10,9 @@
 ![Grafana](https://img.shields.io/badge/Grafana-Dashboard-F46800?style=flat-square&logo=grafana&logoColor=white)
 ![Status](https://img.shields.io/badge/status-working%20prototype-f59e0b?style=flat-square)
 
-**Exchange data in. Normalized events, TimescaleDB history, runtime diagnostics, and live controls out.**
+**Exchange data in → normalized events → TimescaleDB history → runtime diagnostics**
 
-[Quick Start](#quick-start) · [Runtime API](docs/Runtime%20HTTP%20API.md) · [Grafana](docs/Grafana%20Setup.md) · [Full Documentation](#documentation)
+[Quick Start](#quick-start) · [Runtime API](docs/Runtime%20HTTP%20API.md) · [Grafana](docs/Grafana%20Setup.md) · [Documentation](#documentation)
 
 </div>
 
